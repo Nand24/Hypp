@@ -7,6 +7,7 @@ import ListingDetails from './pages/ListingDetails';
 import ManageListing from './pages/ManageListing';
 import ChatBox from './components/ChatBox';
 import Messages from './pages/Messages';
+import { Analytics } from "@vercel/analytics/next"
 import { Toaster } from 'react-hot-toast';
 import { useEffect } from 'react';
 import { useDispatch } from 'react-redux';
