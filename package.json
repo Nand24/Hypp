@@ -4,7 +4,8 @@
   "scripts": {
     "dev": "concurrently \"npm --prefix server run server\" \"npm --prefix client run dev\"",
     "start": "npm --prefix server start",
-    "smoke": "npm --prefix server run smoke"
+    "smoke": "npm --prefix server run smoke",
+    "build": "npm --prefix client run build"
   },
   "dependencies": {
     "@vercel/analytics": "^2.0.1",
