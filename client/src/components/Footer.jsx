@@ -33,9 +33,12 @@ export default function Footer() {
                         </div>
                     </div>
                 </div>
-                <p className="py-6 text-center border-t mt-10 border-slate-200 dark:border-slate-800 text-xs text-slate-500 dark:text-slate-400">
-                    Copyright {new Date().getFullYear()} © hypp. All Rights Reserved.
-                </p>
+                <div className="py-6 border-t mt-10 border-slate-200 dark:border-slate-800 text-xs text-slate-500 dark:text-slate-400 flex flex-col sm:flex-row items-center justify-between gap-3">
+                    <p>Copyright {new Date().getFullYear()} © hypp. All Rights Reserved.</p>
+                    <p className="font-medium text-slate-600 dark:text-slate-300">
+                        Made with <span className="text-red-500 inline-block animate-pulse">❤️</span> by <span className="font-semibold text-slate-800 dark:text-slate-100">Pranav Sharma</span>
+                    </p>
+                </div>
             </footer>
         </>
     );
