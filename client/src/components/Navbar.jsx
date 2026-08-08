@@ -12,22 +12,23 @@ const Navbar = () => {
 
     return (
         <nav className='h-20'>
-            <div className='fixed left-0 top-0 right-0 z-100 flex items-center justify-between px-6 md:px-16 lg:px-24 xl:px-32 py-4 border-b border-gray-300 bg-white transition-all'>
-                <img onClick={() => { navigate('/'); scrollTo(0, 0); }} src={assets.logo} alt='logo' className='h-10 cursor-pointer' />
+            <div className='fixed left-0 top-0 right-0 z-100 flex items-center justify-between px-6 md:px-16 lg:px-24 xl:px-32 py-4 border-b border-gray-200/80 bg-white/85 backdrop-blur-md transition-all shadow-xs'>
+                <img onClick={() => { navigate('/'); scrollTo(0, 0); }} src={assets.logo} alt='hypp logo' className='h-9 hover:opacity-90 transition cursor-pointer' />
 
                 {/* Desktop Menu */}
-                <div className='hidden sm:flex items-center gap-4 md:gap-8 max-md:text-sm text-gray-800'>
-                    <Link onClick={() => scrollTo(0, 0)} to='/'> Home </Link>
-                    <Link onClick={() => scrollTo(0, 0)} to='/marketplace'> Marketplace </Link>
-                    {user ? <Link onClick={() => scrollTo(0, 0)} to='/messages'> Messages </Link> : <Link onClick={openSignIn} to='#'> Messages </Link> }
-                    {user ? <Link onClick={() => scrollTo(0, 0)} to='/my-listings'> My Listings </Link> : <Link onClick={openSignIn} to='#'> My Listings </Link> }
+                <div className='hidden sm:flex items-center gap-6 md:gap-8 max-md:text-sm font-medium text-slate-700'>
+                    <Link onClick={() => scrollTo(0, 0)} to='/' className='hover:text-indigo-600 transition-colors'> Home </Link>
+                    <Link onClick={() => scrollTo(0, 0)} to='/marketplace' className='hover:text-indigo-600 transition-colors'> Marketplace </Link>
+                    {user ? <Link onClick={() => scrollTo(0, 0)} to='/messages' className='hover:text-indigo-600 transition-colors'> Messages </Link> : <Link onClick={openSignIn} to='#' className='hover:text-indigo-600 transition-colors'> Messages </Link> }
+                    {user ? <Link onClick={() => scrollTo(0, 0)} to='/my-listings' className='hover:text-indigo-600 transition-colors'> My Listings </Link> : <Link onClick={openSignIn} to='#' className='hover:text-indigo-600 transition-colors'> My Listings </Link> }
                 </div>
 
                 {!user ? (
                     <div>
-                        <button onClick={openSignIn} className='max-sm:hidden cursor-pointer px-8 py-2 bg-indigo-500 hover:bg-indigo-600 transition text-white rounded-full'>Login</button>
-                        <MenuIcon className='sm:hidden' onClick={()=>setMenuOpen(true)} />
-                        
+                        <button onClick={openSignIn} className='max-sm:hidden cursor-pointer px-7 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 transition-all text-white font-medium shadow-md shadow-indigo-200 rounded-full hover:shadow-lg active:scale-95'>
+                            Sign In
+                        </button>
+                        <MenuIcon className='sm:hidden cursor-pointer text-slate-700' onClick={()=>setMenuOpen(true)} />
                     </div>
                 ) : (
                     <UserButton>
@@ -47,13 +48,13 @@ const Navbar = () => {
                 )}
             </div>
 
-            <div className={`sm:hidden fixed inset-0 ${menuOpen ? 'w-full' :'w-0'} overflow-hidden bg-white/70 backdrop-blur shadow-xl rounded-lg z-200 text-sm transition-all`}>
-                <div className='flex flex-col items-center justify-center h-full text-xl font-semibold gap-6 p-4'>
-                    <Link to='/marketplace' onClick={() => setMenuOpen(false)}> Marketplace </Link>
-                    <button onClick={openSignIn}> Messages </button>
-                    <button onClick={openSignIn}> My Listings </button>
-                    <button onClick={openSignIn} className=' cursor-pointer px-8 py-2 bg-indigo-500 hover:bg-indigo-600 transition text-white rounded-full'>Login</button>
-                    <XIcon onClick={() => setMenuOpen(false)} className='absolute size-8 right-6 top-6 text-gray-500 hover:text-gray-700 cursor-pointer' />
+            <div className={`sm:hidden fixed inset-0 ${menuOpen ? 'w-full' :'w-0'} overflow-hidden bg-slate-900/40 backdrop-blur-md z-200 text-sm transition-all`}>
+                <div className='flex flex-col items-center justify-center h-full text-xl font-semibold gap-6 p-6 bg-white w-4/5 ml-auto shadow-2xl relative'>
+                    <Link to='/marketplace' onClick={() => setMenuOpen(false)} className='hover:text-indigo-600'> Marketplace </Link>
+                    <button onClick={() => { setMenuOpen(false); openSignIn(); }}> Messages </button>
+                    <button onClick={() => { setMenuOpen(false); openSignIn(); }}> My Listings </button>
+                    <button onClick={() => { setMenuOpen(false); openSignIn(); }} className='cursor-pointer px-8 py-2.5 bg-indigo-600 text-white rounded-full'>Sign In</button>
+                    <XIcon onClick={() => setMenuOpen(false)} className='absolute size-7 right-6 top-6 text-slate-500 hover:text-slate-700 cursor-pointer' />
                 </div>
             </div>
         </nav>
