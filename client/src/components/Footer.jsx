@@ -9,7 +9,7 @@ export default function Footer() {
                         <a href="/">
                             <img src={assets.logo} alt="logo" />
                         </a>
-                        <p className="text-sm/7 mt-6">flipearn is a social media marketplace . We are the leading social media marketplace that connects brands with their customers With our user-friendly interface.</p>
+                        <p className="text-sm/7 mt-6">hypp is a premier social media marketplace connecting creators, brands, and buyers. Effortlessly buy and sell verified social profiles with ease and security.</p>
                     </div>
                     <div className="flex flex-col lg:items-center lg:justify-center">
                         <div className="flex flex-col text-sm space-y-2.5">
@@ -32,7 +32,7 @@ export default function Footer() {
                     </div>
                 </div>
                 <p className="py-4 text-center border-t mt-6 border-slate-200">
-                    Copyright {new Date().getFullYear()} © GreatStack All Right Reserved.
+                    Copyright {new Date().getFullYear()} © hypp. All Rights Reserved.
                 </p>
             </footer>
         </>
