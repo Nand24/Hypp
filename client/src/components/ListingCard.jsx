@@ -101,7 +101,7 @@ const ListingCard = ({ listing }) => {
                                 <span className='text-2xl font-extrabold text-slate-900 dark:text-white'>
                                     {currency}{listing.price ? listing.price.toLocaleString() : '0'}
                                 </span>
-                                <span className='text-xs text-slate-400 dark:text-slate-500 font-medium'>USD</span>
+                                <span className='text-xs text-slate-400 dark:text-slate-500 font-medium'>{import.meta.env.VITE_CURRENCY === '₹' ? 'INR' : 'USD'}</span>
                             </div>
                         </div>
 
