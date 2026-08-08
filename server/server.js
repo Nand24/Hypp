@@ -5,6 +5,7 @@ import { clerkMiddleware } from "@clerk/express";
 import { inngest, functions } from "./inngest/index.js";
 import { serve } from "inngest/express";
 import { connectDB } from "./configs/mongoose.js";
+import { autoSyncClerkUsers } from "./utils/autoSyncClerk.js";
 import adminRouter from "./routes/adminRoutes.js";
 import listingRouter from "./routes/listingRoutes.js";
 import chatRouter from "./routes/chatRoutes.js";
@@ -12,8 +13,10 @@ import { stripeWebhook } from "./controllers/stripeWebhook.js";
 
 const app = express();
 
-// Connect to MongoDB
-connectDB().catch((err) => console.error("Failed to connect to MongoDB:", err));
+// Connect to MongoDB & Auto Sync Clerk Users
+connectDB()
+	.then(() => autoSyncClerkUsers())
+	.catch((err) => console.error("Failed to connect to MongoDB:", err));
 
 // Stripe Webhooks Route
 app.use('/api/stripe', express.raw({type: 'application/json'}), stripeWebhook)
