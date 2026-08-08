@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <rect width="100" height="100" rx="28" fill="url(#hypp_fav_grad)"/>
+  <text x="50" y="68" font-family="system-ui, -apple-system, sans-serif" font-weight="900" font-size="58" fill="#FFFFFF" text-anchor="middle">h</text>
+  <circle cx="74" cy="26" r="9" fill="#EC4899"/>
+  <defs>
+    <linearGradient id="hypp_fav_grad" x1="0" y1="0" x2="100" y2="100" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#6366F1"/>
+      <stop offset="1" stop-color="#4F46E5"/>
+    </linearGradient>
+  </defs>
+</svg>
