@@ -1,4 +1,4 @@
-import { DollarSign, Users, LineChart, Eye, Calendar, MapPin, CheckCircle2, UserCircle, ChevronLeftIcon, ChevronRightIcon, ArrowLeftIcon, Loader2Icon, ShoppingBagIcon, ArrowUpRightFromSquareIcon, MessageSquareMoreIcon } from 'lucide-react';
+import { DollarSign, Users, LineChart, Eye, Calendar, MapPin, CheckCircle2, ChevronLeftIcon, ChevronRightIcon, ArrowLeftIcon, Loader2Icon, ShoppingBagIcon, ArrowUpRightFromSquareIcon, MessageSquareMoreIcon } from 'lucide-react';
 import { assets, getProfileLink, platformIcons } from '../assets/assets';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
@@ -59,35 +59,35 @@ export default function ListingDetails() {
 
     return listing ? (
         <div className='mx-auto min-h-screen px-6 md:px-16 lg:px-24 xl:px-32 '>
-            <button onClick={() => navigate(-1)} className='flex items-center gap-2 text-slate-600 py-5'>
+            <button onClick={() => navigate(-1)} className='flex items-center gap-2 text-slate-600 dark:text-slate-400 py-5 hover:text-indigo-600 dark:hover:text-indigo-400 cursor-pointer'>
                 <ArrowLeftIcon className='size-4' /> Go to Previous Page
             </button>
 
             <div className='flex items-start max-md:flex-col gap-10'>
                 <div className='flex-1 max-md:w-full'>
                     {/* Top Section */}
-                    <div className='bg-white rounded-xl border border-gray-200 p-6 mb-5'>
+                    <div className='bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-6 mb-5 shadow-xs'>
                         <div className='flex flex-col md:flex-row md:items-end md:justify-between gap-4'>
                             <div className='flex items-start gap-3'>
-                                <div className='p-2 rounded-xl'>{platformIcons[listing.platform]}</div>
+                                <div className='p-2 rounded-xl bg-slate-50 dark:bg-slate-800'>{platformIcons[listing.platform]}</div>
                                 <div>
-                                    <h2 className='flex items-center gap-2 text-xl font-semibold text-gray-800'>
+                                    <h2 className='flex items-center gap-2 text-xl font-semibold text-slate-800 dark:text-slate-100'>
                                         {listing.title}
                                         <Link target='_blank' to={profileLink}>
-                                            <ArrowUpRightFromSquareIcon className='size-4 hover:text-indigo-500' />
+                                            <ArrowUpRightFromSquareIcon className='size-4 text-slate-400 hover:text-indigo-500' />
                                         </Link>
                                     </h2>
-                                    <p className='text-gray-500 text-sm'>
+                                    <p className='text-slate-500 dark:text-slate-400 text-sm'>
                                         @{listing.username} • {listing.platform?.charAt(0).toUpperCase() + listing.platform?.slice(1)}
                                     </p>
                                     <div className='flex gap-2 mt-2'>
                                         {listing.verified && (
-                                            <span className='flex items-center text-xs bg-indigo-50 text-indigo-600 px-2 py-1 rounded-md'>
+                                            <span className='flex items-center text-xs bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-300 px-2.5 py-1 rounded-md'>
                                                 <CheckCircle2 className='w-3 h-3 mr-1' /> Verified
                                             </span>
                                         )}
                                         {listing.monetized && (
-                                            <span className='flex items-center text-xs bg-green-50 text-green-600 px-2 py-1 rounded-md'>
+                                            <span className='flex items-center text-xs bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-300 px-2.5 py-1 rounded-md'>
                                                 <DollarSign className='w-3 h-3 mr-1' /> Monetized
                                             </span>
                                         )}
@@ -96,43 +96,43 @@ export default function ListingDetails() {
                             </div>
 
                             <div className='text-right'>
-                                <h3 className='text-2xl font-bold text-gray-800'>
+                                <h3 className='text-2xl font-bold text-slate-800 dark:text-slate-100'>
                                     {currency}
                                     {listing.price?.toLocaleString()}
                                 </h3>
-                                <p className='text-sm text-gray-500'>USD</p>
+                                <p className='text-sm text-slate-500 dark:text-slate-400'>USD</p>
                             </div>
                         </div>
                     </div>
 
                     {/* Screenshot Section */}
                     {images?.length > 0 && (
-                        <div className='bg-white rounded-xl border border-gray-200 mb-5 overflow-hidden'>
-                            <div className='p-4'>
-                                <h4 className='font-semibold text-gray-800'>Screenshots & Proof</h4>
+                        <div className='bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 mb-5 overflow-hidden shadow-xs'>
+                            <div className='p-4 border-b border-slate-100 dark:border-slate-800'>
+                                <h4 className='font-semibold text-slate-800 dark:text-slate-100'>Screenshots & Proof</h4>
                             </div>
 
                             {/* Slider container */}
-                            <div className='relative w-full aspect-video overflow-hidden'>
+                            <div className='relative w-full aspect-video overflow-hidden bg-slate-950'>
                                 <div className='flex transition-transform duration-300 ease-in-out' style={{ transform: `translateX(-${current * 100}%)` }}>
                                     {images.map((img, index) => (
-                                        <img key={index} src={img} alt='Listing Proof' className='w-full shrink-0' />
+                                        <img key={index} src={img} alt='Listing Proof' className='w-full shrink-0 object-cover' />
                                     ))}
                                 </div>
 
                                 {/* Navigation Buttons */}
-                                <button onClick={prevSlide} className='absolute left-3 top-1/2 -translate-y-1/2 bg-white/70 hover:bg-white p-2 rounded-full shadow'>
-                                    <ChevronLeftIcon className='w-5 h-5 text-gray-700' />
+                                <button onClick={prevSlide} className='absolute left-3 top-1/2 -translate-y-1/2 bg-white/80 dark:bg-slate-900/80 hover:bg-white p-2 rounded-full shadow cursor-pointer'>
+                                    <ChevronLeftIcon className='w-5 h-5 text-slate-700 dark:text-slate-200' />
                                 </button>
 
-                                <button onClick={nextSlide} className='absolute right-3 top-1/2 -translate-y-1/2 bg-white/70 hover:bg-white p-2 rounded-full shadow'>
-                                    <ChevronRightIcon className='w-5 h-5 text-gray-700' />
+                                <button onClick={nextSlide} className='absolute right-3 top-1/2 -translate-y-1/2 bg-white/80 dark:bg-slate-900/80 hover:bg-white p-2 rounded-full shadow cursor-pointer'>
+                                    <ChevronRightIcon className='w-5 h-5 text-slate-700 dark:text-slate-200' />
                                 </button>
 
                                 {/* Dots Indicator */}
                                 <div className='absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-2'>
                                     {images.map((_, index) => (
-                                        <button key={index} onClick={() => setCurrent(index)} className={`w-2.5 h-2.5 rounded-full ${current === index ? 'bg-indigo-600' : 'bg-gray-300'}`} />
+                                        <button key={index} onClick={() => setCurrent(index)} className={`w-2.5 h-2.5 rounded-full ${current === index ? 'bg-indigo-600' : 'bg-slate-300 dark:bg-slate-700'}`} />
                                     ))}
                                 </div>
                             </div>
@@ -140,95 +140,100 @@ export default function ListingDetails() {
                     )}
 
                     {/* Account Metrics */}
-                    <div className='bg-white rounded-xl border border-gray-200 mb-5'>
-                        <div className='p-4 border-b border-gray-100'>
-                            <h4 className='font-semibold text-gray-800'>Account Metrics</h4>
+                    <div className='bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 mb-5 shadow-xs'>
+                        <div className='p-4 border-b border-slate-100 dark:border-slate-800'>
+                            <h4 className='font-semibold text-slate-800 dark:text-slate-100'>Account Metrics</h4>
                         </div>
                         <div className='grid grid-cols-2 md:grid-cols-4 gap-4 p-4 text-center'>
                             <div>
-                                <Users className='mx-auto text-gray-400 w-5 h-5 mb-1' />
-                                <p className='font-semibold text-gray-800'>{listing.followers_count?.toLocaleString()}</p>
-                                <p className='text-xs text-gray-500'>Followers</p>
+                                <Users className='mx-auto text-indigo-500 w-5 h-5 mb-1' />
+                                <p className='font-semibold text-slate-800 dark:text-slate-200'>{listing.followers_count?.toLocaleString()}</p>
+                                <p className='text-xs text-slate-500 dark:text-slate-400'>Followers</p>
                             </div>
                             <div>
-                                <LineChart className='mx-auto text-gray-400 w-5 h-5 mb-1' />
-                                <p className='font-semibold text-gray-800'>{listing.engagement_rate}%</p>
-                                <p className='text-xs text-gray-500'>Engagement</p>
+                                <LineChart className='mx-auto text-purple-500 w-5 h-5 mb-1' />
+                                <p className='font-semibold text-slate-800 dark:text-slate-200'>{listing.engagement_rate}%</p>
+                                <p className='text-xs text-slate-500 dark:text-slate-400'>Engagement</p>
                             </div>
                             <div>
-                                <Eye className='mx-auto text-gray-400 w-5 h-5 mb-1' />
-                                <p className='font-semibold text-gray-800'>{listing.monthly_views?.toLocaleString()}</p>
-                                <p className='text-xs text-gray-500'>Monthly Views</p>
+                                <Eye className='mx-auto text-pink-500 w-5 h-5 mb-1' />
+                                <p className='font-semibold text-slate-800 dark:text-slate-200'>{listing.monthly_views?.toLocaleString()}</p>
+                                <p className='text-xs text-slate-500 dark:text-slate-400'>Monthly Views</p>
                             </div>
                             <div>
-                                <Calendar className='mx-auto text-gray-400 w-5 h-5 mb-1' />
-                                <p className='font-semibold text-gray-800'>{new Date(listing.createdAt).toLocaleDateString()}</p>
-                                <p className='text-xs text-gray-500'>Listed</p>
+                                <Calendar className='mx-auto text-emerald-500 w-5 h-5 mb-1' />
+                                <p className='font-semibold text-slate-800 dark:text-slate-200'>
+                                    {listing.createdAt && !isNaN(new Date(listing.createdAt))
+                                        ? new Date(listing.createdAt).toLocaleDateString()
+                                        : 'Recently'}
+                                </p>
+                                <p className='text-xs text-slate-500 dark:text-slate-400'>Listed</p>
                             </div>
                         </div>
                     </div>
 
                     {/* Description */}
-                    <div className='bg-white rounded-xl border border-gray-200 mb-5'>
-                        <div className='p-4 border-b border-gray-100'>
-                            <h4 className='font-semibold text-gray-800'>Description</h4>
+                    <div className='bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 mb-5 shadow-xs'>
+                        <div className='p-4 border-b border-slate-100 dark:border-slate-800'>
+                            <h4 className='font-semibold text-slate-800 dark:text-slate-100'>Description</h4>
                         </div>
-                        <div className='p-4 text-sm text-gray-600'>{listing.description}</div>
+                        <div className='p-4 text-sm text-slate-600 dark:text-slate-300 leading-relaxed'>{listing.description}</div>
                     </div>
 
                     {/* Additional Details */}
-                    <div className='bg-white rounded-xl border border-gray-200 mb-5'>
-                        <div className='p-4 border-b border-gray-100'>
-                            <h4 className='font-semibold text-gray-800'>Additional Details</h4>
+                    <div className='bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 mb-5 shadow-xs'>
+                        <div className='p-4 border-b border-slate-100 dark:border-slate-800'>
+                            <h4 className='font-semibold text-slate-800 dark:text-slate-100'>Additional Details</h4>
                         </div>
                         <div className='grid grid-cols-1 md:grid-cols-2 gap-6 p-4 text-sm'>
                             <div>
-                                <p className='text-gray-500'>Niche</p>
-                                <p className='font-medium capitalize'>{listing.niche}</p>
+                                <p className='text-slate-500 dark:text-slate-400'>Niche</p>
+                                <p className='font-medium capitalize text-slate-800 dark:text-slate-200'>{listing.niche}</p>
                             </div>
                             <div>
-                                <p className='text-gray-500'>Primary Country</p>
-                                <p className='flex items-center font-medium'>
-                                    <MapPin className='size-4 mr-1 text-gray-400' /> {listing.country}
+                                <p className='text-slate-500 dark:text-slate-400'>Primary Country</p>
+                                <p className='flex items-center font-medium text-slate-800 dark:text-slate-200'>
+                                    <MapPin className='size-4 mr-1 text-slate-400' /> {listing.country}
                                 </p>
                             </div>
                             <div>
-                                <p className='text-gray-500'>Audience Age</p>
-                                <p className='font-medium'>{listing.age_range}</p>
+                                <p className='text-slate-500 dark:text-slate-400'>Audience Age</p>
+                                <p className='font-medium text-slate-800 dark:text-slate-200'>{listing.age_range}</p>
                             </div>
                             <div>
-                                <p className='text-gray-500'>Platform Verified</p>
-                                <p className='font-medium'>{listing.platformAssured ? 'Yes' : 'No'}</p>
+                                <p className='text-slate-500 dark:text-slate-400'>Platform Verified</p>
+                                <p className='font-medium text-slate-800 dark:text-slate-200'>{listing.platformAssured ? 'Yes' : 'No'}</p>
                             </div>
                             <div>
-                                <p className='text-gray-500'>Monetization</p>
-                                <p className='font-medium'>{listing.monetized ? 'Enabled' : 'Disabled'}</p>
+                                <p className='text-slate-500 dark:text-slate-400'>Monetization</p>
+                                <p className='font-medium text-slate-800 dark:text-slate-200'>{listing.monetized ? 'Enabled' : 'Disabled'}</p>
                             </div>
                             <div>
-                                <p className='text-gray-500'>Status</p>
-                                <p className='font-medium capitalize'>{listing.status}</p>
+                                <p className='text-slate-500 dark:text-slate-400'>Status</p>
+                                <p className='font-medium capitalize text-slate-800 dark:text-slate-200'>{listing.status}</p>
                             </div>
                         </div>
                     </div>
                 </div>
+
                 {/* Seller Info & Purchase Options */}
-                <div className='bg-white min-w-full md:min-w-[370px] rounded-xl border border-gray-200 p-5 max-md:mb-10'>
-                    <h4 className='font-semibold text-gray-800 mb-4'>Seller Information</h4>
+                <div className='bg-white dark:bg-slate-900 min-w-full md:min-w-[370px] rounded-2xl border border-slate-200/80 dark:border-slate-800 p-5 max-md:mb-10 shadow-xs'>
+                    <h4 className='font-semibold text-slate-800 dark:text-slate-100 mb-4'>Seller Information</h4>
                     <div className='flex items-center gap-3 mb-2'>
                         <img
                             src={listing.owner?.image || assets.user_profile}
                             alt={listing.owner?.name || 'seller'}
-                            className='size-11 rounded-full object-cover border border-gray-200'
+                            className='size-11 rounded-full object-cover border border-slate-200 dark:border-slate-700'
                             onError={(e) => { e.target.onerror = null; e.target.src = assets.user_profile; }}
                         />
                         <div>
-                            <p className='font-medium text-gray-800'>{listing.owner?.name || 'Verified Seller'}</p>
-                            <p className='text-sm text-gray-500'>{listing.owner?.email || 'Seller'}</p>
+                            <p className='font-medium text-slate-800 dark:text-slate-100'>{listing.owner?.name || 'Verified Seller'}</p>
+                            <p className='text-sm text-slate-500 dark:text-slate-400'>{listing.owner?.email || 'Seller'}</p>
                         </div>
                     </div>
-                    <div className='flex items-center justify-between text-sm text-gray-600 mb-4'>
+                    <div className='flex items-center justify-between text-sm text-slate-600 dark:text-slate-400 mb-4'>
                         <p>
-                            Member Since <span className='font-medium'>
+                            Member Since <span className='font-medium text-slate-800 dark:text-slate-200'>
                                 {listing.owner?.createdAt && !isNaN(new Date(listing.owner.createdAt))
                                     ? new Date(listing.owner.createdAt).toLocaleDateString()
                                     : listing.createdAt && !isNaN(new Date(listing.createdAt))
@@ -237,28 +242,28 @@ export default function ListingDetails() {
                             </span>
                         </p>
                     </div>
-                    <button onClick={loadChatbox} className='w-full bg-indigo-600 text-white py-2 rounded-lg hover:bg-indigo-700 transition text-sm font-medium flex items-center justify-center gap-2'>
-                        <MessageSquareMoreIcon className='size-4' /> Chat
+                    <button onClick={loadChatbox} className='w-full bg-indigo-600 text-white py-2.5 rounded-xl hover:bg-indigo-700 transition text-sm font-medium flex items-center justify-center gap-2 cursor-pointer shadow-sm'>
+                        <MessageSquareMoreIcon className='size-4' /> Chat with Seller
                     </button>
 
                     {listing.isCredentialChanged && (
-                        <button onClick={purchaseAccount} className='w-full mt-2 bg-purple-600 text-white py-2 rounded-lg hover:bg-purple-700 transition text-sm font-medium flex items-center justify-center gap-2'>
-                            <ShoppingBagIcon className='size-4' /> Purchase
+                        <button onClick={purchaseAccount} className='w-full mt-2 bg-purple-600 text-white py-2.5 rounded-xl hover:bg-purple-700 transition text-sm font-medium flex items-center justify-center gap-2 cursor-pointer shadow-sm'>
+                            <ShoppingBagIcon className='size-4' /> Purchase Account
                         </button>
                     )}
                 </div>
             </div>
 
             {/* Footer */}
-            <div className='bg-white border-t border-gray-200 p-4 text-center mt-28'>
-                <p className='text-sm text-gray-500'>
-                    © {new Date().getFullYear()} <span className='text-indigo-600'> Profile Marketplace</span> All rights reserved.
+            <div className='bg-white dark:bg-slate-950 border-t border-slate-200 dark:border-slate-800 p-4 text-center mt-28'>
+                <p className='text-sm text-slate-500 dark:text-slate-400'>
+                    © {new Date().getFullYear()} <span className='text-indigo-600 dark:text-indigo-400 font-semibold'>hypp.</span> All rights reserved.
                 </p>
             </div>
         </div>
     ) : (
         <div className='h-screen flex justify-center items-center'>
-            <Loader2Icon className='size-7 animate-spin text-indigo-600' />
+            <Loader2Icon className='size-7 animate-spin text-indigo-600 dark:text-indigo-400' />
         </div>
     );
 }

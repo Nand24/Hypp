@@ -15,22 +15,22 @@ const LatestListings = () => {
 
     return (
         <section className='my-20 px-4 md:px-12 lg:px-24 max-w-7xl mx-auto'>
-            <div className='flex flex-col md:flex-row md:items-end justify-between mb-10 gap-4 border-b border-slate-100 pb-6'>
+            <div className='flex flex-col md:flex-row md:items-end justify-between mb-10 gap-4 border-b border-slate-100 dark:border-slate-800 pb-6'>
                 <div>
-                    <div className='inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-50 text-purple-600 text-xs font-semibold mb-2'>
+                    <div className='inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-300 text-xs font-semibold mb-2'>
                         <Sparkles className='size-3.5' /> Verified & Active
                     </div>
-                    <h2 className='text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight'>
+                    <h2 className='text-3xl md:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight'>
                         Featured Marketplace Accounts
                     </h2>
-                    <p className='text-slate-500 text-sm md:text-base mt-1.5 max-w-xl'>
+                    <p className='text-slate-500 dark:text-slate-400 text-sm md:text-base mt-1.5 max-w-xl'>
                         Explore top-rated YouTube, Instagram, and TikTok accounts with verified audience metrics.
                     </p>
                 </div>
 
                 <button
                     onClick={() => { navigate('/marketplace'); scrollTo(0, 0); }}
-                    className='inline-flex items-center gap-2 text-indigo-600 hover:text-indigo-700 font-semibold text-sm hover:translate-x-1 transition-all cursor-pointer self-start md:self-auto'
+                    className='inline-flex items-center gap-2 text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 font-semibold text-sm hover:translate-x-1 transition-all cursor-pointer self-start md:self-auto'
                 >
                     Explore All Marketplace <ArrowRight className='size-4' />
                 </button>
@@ -43,8 +43,8 @@ const LatestListings = () => {
                     ))}
                 </div>
             ) : (
-                <div className='text-center py-16 bg-slate-50 rounded-2xl border border-slate-200/60'>
-                    <p className='text-slate-500 text-sm font-medium'>No active listings found right now.</p>
+                <div className='text-center py-16 bg-slate-50 dark:bg-slate-900 rounded-2xl border border-slate-200/60 dark:border-slate-800'>
+                    <p className='text-slate-500 dark:text-slate-400 text-sm font-medium'>No active listings found right now.</p>
                 </div>
             )}
         </section>
