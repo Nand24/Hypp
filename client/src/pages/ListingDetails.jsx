@@ -291,8 +291,8 @@ export default function ListingDetails() {
                                 {listing.owner?.createdAt && !isNaN(new Date(listing.owner.createdAt))
                                     ? new Date(listing.owner.createdAt).toLocaleDateString()
                                     : listing.createdAt && !isNaN(new Date(listing.createdAt))
-                                    ? new Date(listing.createdAt).toLocaleDateString()
-                                    : 'Recently'}
+                                        ? new Date(listing.createdAt).toLocaleDateString()
+                                        : 'Recently'}
                             </span>
                         </p>
                     </div>

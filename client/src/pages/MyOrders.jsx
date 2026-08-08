@@ -133,31 +133,37 @@ const MyOrders = () => {
                             </div>
 
                             {isExpanded && (
-                                <div className='mt-4 md:mt-0 pt-4'>
-                                    <div className='space-y-2'>
-                                        {credential.updatedCredential.map((cred) => (
-                                            <div key={cred.name} className='flex items-center justify-between gap-3 bg-gray-50 rounded-md p-2'>
-                                                <div>
-                                                    <p className='text-sm font-medium text-gray-800'>{cred.name}</p>
-                                                    <p className='text-xs text-gray-500'>{cred.type}</p>
-                                                </div>
+                                <div className='mt-4 pt-4 border-t border-gray-100'>
+                                    {credential && ((credential.updatedCredential && credential.updatedCredential.length > 0) || (credential.originalCredential && credential.originalCredential.length > 0)) ? (
+                                        <div className='space-y-2'>
+                                            {(credential.updatedCredential && credential.updatedCredential.length > 0 ? credential.updatedCredential : credential.originalCredential).map((cred, idx) => (
+                                                <div key={cred.name || idx} className='flex items-center justify-between gap-3 bg-gray-50 rounded-md p-2'>
+                                                    <div>
+                                                        <p className='text-sm font-medium text-gray-800'>{cred.name}</p>
+                                                        <p className='text-xs text-gray-500'>{cred.type}</p>
+                                                    </div>
 
-                                                <div className='flex items-center gap-2'>
-                                                    <code className='text-sm font-mono'>{mask(cred.value, cred.type)}</code>
-                                                    <button
-                                                        onClick={(e) => {
-                                                            e.stopPropagation(); // ensure no parent toggles
-                                                            copy(cred.value);
-                                                        }}
-                                                        className='px-2 py-1 text-xs bg-white border border-gray-200 rounded hover:shadow'
-                                                        title='Copy credential'
-                                                    >
-                                                        <Copy className='size-4' />
-                                                    </button>
+                                                    <div className='flex items-center gap-2'>
+                                                        <code className='text-sm font-mono'>{mask(cred.value, cred.type)}</code>
+                                                        <button
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                copy(cred.value);
+                                                            }}
+                                                            className='px-2 py-1 text-xs bg-white border border-gray-200 rounded hover:shadow'
+                                                            title='Copy credential'
+                                                        >
+                                                            <Copy className='size-4' />
+                                                        </button>
+                                                    </div>
                                                 </div>
-                                            </div>
-                                        ))}
-                                    </div>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <div className='p-3 bg-amber-50 border border-amber-200 rounded-md text-amber-800 text-sm'>
+                                            Credentials are being processed by platform escrow. Credentials will be sent to your email!
+                                        </div>
+                                    )}
                                 </div>
                             )}
                         </div>
