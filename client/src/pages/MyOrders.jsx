@@ -3,7 +3,7 @@ import { useAuth, useUser } from '@clerk/clerk-react';
 import toast from 'react-hot-toast';
 import api from '../configs/axios';
 import { platformIcons } from '../assets/assets';
-import { CheckCircle2, Loader2Icon, Copy, ChevronDown, ChevronUp } from 'lucide-react';
+import { CheckCircle2, Loader2Icon, Copy, ChevronDown, ChevronUp, ShieldCheck, ShieldAlert, AlertCircle } from 'lucide-react';
 import { format } from 'date-fns';
 
 const MyOrders = () => {
@@ -20,11 +20,39 @@ const MyOrders = () => {
             setLoading(true);
             const token = await getToken();
             const { data } = await api.get('/api/listing/user-orders', { headers: { Authorization: `Bearer ${token}` } });
-            setOrders(data.orders);
+            setOrders(data.orders || []);
         } catch (error) {
-            toast.error(error?.response?.data?.message || error.message);
+            toast.error(error?.response?.data?.message || 'Failed to fetch orders');
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleReleaseEscrow = async (transactionId) => {
+        try {
+            const token = await getToken();
+            const { data } = await api.post('/api/listing/release-escrow', { transactionId }, { headers: { Authorization: `Bearer ${token}` } });
+            if (data.success) {
+                toast.success('Funds released to seller balance!');
+                fetchOrders();
+            }
+        } catch (err) {
+            toast.error(err?.response?.data?.message || 'Failed to release funds');
+        }
+    };
+
+    const handleDisputeEscrow = async (transactionId) => {
+        const reason = window.prompt('Describe issue with credentials/account:');
+        if (!reason) return;
+        try {
+            const token = await getToken();
+            const { data } = await api.post('/api/listing/dispute-escrow', { transactionId, reason }, { headers: { Authorization: `Bearer ${token}` } });
+            if (data.success) {
+                toast.success('Escrow dispute registered. Support team notified.');
+                fetchOrders();
+            }
+        } catch (err) {
+            toast.error(err?.response?.data?.message || 'Failed to dispute order');
         }
     };
 
@@ -130,10 +158,40 @@ const MyOrders = () => {
                                 <div className='text-xs text-gray-500 mt-2 text-right'>
                                     <div>Credential Purchased: {format(new Date(order.createdAt), 'MMM d, yyyy')}</div>
                                 </div>
-                            </div>
+                            </div>                             {isExpanded && (
+                                <div className='mt-4 pt-4 border-t border-gray-100 space-y-4'>
+                                    {/* Escrow Status & Action Banner */}
+                                    <div className={`p-3.5 rounded-xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs ${order.escrowStatus === 'released' ? 'bg-emerald-50 border-emerald-200 text-emerald-800' : order.escrowStatus === 'disputed' ? 'bg-red-50 border-red-200 text-red-800' : 'bg-indigo-50 border-indigo-200 text-indigo-900'}`}>
+                                        <div className='flex items-center gap-2'>
+                                            {order.escrowStatus === 'released' ? <CheckCircle2 className='size-4 text-emerald-600' /> : order.escrowStatus === 'disputed' ? <AlertCircle className='size-4 text-red-600' /> : <ShieldCheck className='size-4 text-indigo-600' />}
+                                            <div>
+                                                <span className='font-bold uppercase tracking-wide'>
+                                                    {order.escrowStatus === 'released' ? 'Escrow Protection Completed' : order.escrowStatus === 'disputed' ? 'Escrow Dispute Active' : '🛡️ 48h Inspection Window Active'}
+                                                </span>
+                                                <p className='text-xs opacity-80 mt-0.5'>
+                                                    {order.escrowStatus === 'released' ? 'Funds have been released to the seller.' : order.escrowStatus === 'disputed' ? `Dispute Reason: ${order.disputeReason || 'Under Review'}` : 'You can inspect the account. Approve transfer to release funds immediately or flag a dispute.'}
+                                                </p>
+                                            </div>
+                                        </div>
 
-                            {isExpanded && (
-                                <div className='mt-4 pt-4 border-t border-gray-100'>
+                                        {order.escrowStatus !== 'released' && order.escrowStatus !== 'disputed' && (
+                                            <div className='flex items-center gap-2 shrink-0'>
+                                                <button
+                                                    onClick={(e) => { e.stopPropagation(); handleReleaseEscrow(order.id); }}
+                                                    className='px-3 py-1.5 bg-emerald-600 text-white rounded-lg font-semibold hover:bg-emerald-700 transition'
+                                                >
+                                                    Approve & Release Funds
+                                                </button>
+                                                <button
+                                                    onClick={(e) => { e.stopPropagation(); handleDisputeEscrow(order.id); }}
+                                                    className='px-2.5 py-1.5 bg-white border border-red-300 text-red-600 rounded-lg font-semibold hover:bg-red-50 transition'
+                                                >
+                                                    Report Issue
+                                                </button>
+                                            </div>
+                                        )}
+                                    </div>
+
                                     {credential && ((credential.updatedCredential && credential.updatedCredential.length > 0) || (credential.originalCredential && credential.originalCredential.length > 0)) ? (
                                         <div className='space-y-2'>
                                             {(credential.updatedCredential && credential.updatedCredential.length > 0 ? credential.updatedCredential : credential.originalCredential).map((cred, idx) => (

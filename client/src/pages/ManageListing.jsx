@@ -20,6 +20,42 @@ const ManageListing = () => {
     const [loadingAIValuation, setLoadingAIValuation] = useState(false);
     const [loadingAIDesc, setLoadingAIDesc] = useState(false);
 
+    const [kycVerified, setKycVerified] = useState(false);
+    const [kycStatus, setKycStatus] = useState('unverified');
+    const [docType, setDocType] = useState('aadhaar');
+    const [docNum, setDocNum] = useState('');
+    const [submittingKYC, setSubmittingKYC] = useState(false);
+
+    const fetchKYC = async () => {
+        try {
+            const token = await getToken();
+            const { data } = await api.get('/api/listing/kyc-status', { headers: { Authorization: `Bearer ${token}` } });
+            setKycVerified(data.kycVerified);
+            setKycStatus(data.kycStatus);
+        } catch (e) {}
+    };
+
+    useEffect(() => {
+        if (user) fetchKYC();
+    }, [user]);
+
+    const handleSubmitKYC = async () => {
+        if (!docNum) return toast.error('Please enter document number');
+        try {
+            setSubmittingKYC(true);
+            const token = await getToken();
+            const { data } = await api.post('/api/listing/submit-kyc', { documentType: docType, documentNumber: docNum }, { headers: { Authorization: `Bearer ${token}` } });
+            if (data.success) {
+                toast.success(data.message);
+                fetchKYC();
+            }
+        } catch (err) {
+            toast.error(err?.response?.data?.message || 'KYC submission failed');
+        } finally {
+            setSubmittingKYC(false);
+        }
+    };
+
     const [formData, setFormData] = useState({
         title: '',
         platform: '',
@@ -178,6 +214,48 @@ const ManageListing = () => {
                 <div className='mb-8'>
                     <h1 className='text-3xl font-bold text-gray-800'>{isEditing ? 'Edit Listing' : 'List Your Account'}</h1>
                     <p className='text-gray-600 mt-2'>{isEditing ? 'Update your existing account listing' : 'Create a mock listing to display your account info'}</p>
+                {/* SELLER IDENTITY VERIFICATION (KYC) */}
+                <div className={`mb-8 p-5 rounded-2xl border transition-all ${kycVerified ? 'bg-emerald-50/80 border-emerald-200 text-emerald-900' : 'bg-amber-50/80 border-amber-200 text-amber-900'}`}>
+                    <div className='flex items-center justify-between gap-4'>
+                        <div className='flex items-center gap-3'>
+                            {kycVerified ? <ShieldCheck className='size-6 text-emerald-600 shrink-0' /> : <ShieldAlert className='size-6 text-amber-600 shrink-0' />}
+                            <div>
+                                <h3 className='font-bold text-sm flex items-center gap-2'>
+                                    Seller Identity Verification (KYC)
+                                    <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full ${kycVerified ? 'bg-emerald-200 text-emerald-800' : 'bg-amber-200 text-amber-800'}`}>
+                                        {kycVerified ? 'Verified Seller ✓' : 'Verification Required'}
+                                    </span>
+                                </h3>
+                                <p className='text-xs opacity-80 mt-0.5'>
+                                    {kycVerified ? 'Your seller identity is verified via Government ID (Aadhaar / PAN).' : 'Verify your Govt ID (Aadhaar / PAN) to unlock high-value marketplace listings.'}
+                                </p>
+                            </div>
+                        </div>
+
+                        {!kycVerified && (
+                            <div className='flex items-center gap-2 shrink-0'>
+                                <select value={docType} onChange={(e) => setDocType(e.target.value)} className='px-2.5 py-1.5 bg-white border border-amber-300 rounded-lg text-xs font-medium focus:outline-none'>
+                                    <option value='aadhaar'>Aadhaar (12 Digits)</option>
+                                    <option value='pan'>PAN Card (10 Chars)</option>
+                                </select>
+                                <input
+                                    type='text'
+                                    placeholder={docType === 'aadhaar' ? '123456789012' : 'ABCDE1234F'}
+                                    value={docNum}
+                                    onChange={(e) => setDocNum(e.target.value)}
+                                    className='px-2.5 py-1.5 bg-white border border-amber-300 rounded-lg text-xs w-36 uppercase font-mono'
+                                />
+                                <button
+                                    type='button'
+                                    onClick={handleSubmitKYC}
+                                    disabled={submittingKYC}
+                                    className='px-3 py-1.5 bg-amber-600 text-white rounded-lg text-xs font-bold hover:bg-amber-700 transition disabled:opacity-50'
+                                >
+                                    {submittingKYC ? 'Verifying...' : 'Verify ID'}
+                                </button>
+                            </div>
+                        )}
+                    </div>
                 </div>
 
                 <form onSubmit={handleSubmit} className='space-y-8'>

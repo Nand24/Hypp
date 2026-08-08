@@ -9,6 +9,10 @@ const UserSchema = new Schema(
         image: { type: String },
         earned: { type: Number, default: 0 },
         withdrawn: { type: Number, default: 0 },
+        kycVerified: { type: Boolean, default: false },
+        kycStatus: { type: String, enum: ["unverified", "pending", "verified"], default: "unverified" },
+        kycDocumentType: { type: String, default: "" },
+        kycNumber: { type: String, default: "" },
     },
     { timestamps: true }
 );

@@ -9,6 +9,7 @@ import User from "../models/User.js";
 import Credential from "../models/Credential.js";
 import Transaction from "../models/Transaction.js";
 import Withdrawal from "../models/Withdrawal.js";
+import { verifyAccountMetrics } from "../utils/accountVerifier.js";
 
 // Controller For Adding Listing to Database
 export const addListing = async (req, res) => {
@@ -476,9 +477,10 @@ export const verifyRazorpayPayment = async (req, res) => {
             .digest("hex");
 
         if (expectedSignature === razorpay_signature) {
+            const expiresAt = new Date(Date.now() + 48 * 60 * 60 * 1000);
             const transaction = await Transaction.findOneAndUpdate(
                 { id: transactionId },
-                { isPaid: true },
+                { isPaid: true, escrowStatus: "held", inspectionWindowExpiresAt: expiresAt },
                 { new: true }
             ).lean();
 
@@ -505,7 +507,6 @@ export const verifyRazorpayPayment = async (req, res) => {
 
                 await inngest.send({ name: "app/purchase", data: { transaction } });
                 await Listing.findOneAndUpdate({ id: transaction.listingId }, { status: "sold", isCredentialSubmitted: true, isCredentialVerified: true, isCredentialChanged: true });
-                await User.findOneAndUpdate({ id: transaction.ownerId }, { $inc: { earned: transaction.amount } });
 
                 try {
                     const customer = await User.findOne({ id: transaction.userId }).lean();
@@ -609,5 +610,112 @@ export const withdrawAmount = async (req, res) => {
     } catch (error) {
         console.log(error);
         res.status(500).json({ message: error.code || error.message });
+    }
+};
+
+// Release Escrow Funds to Seller (Buyer action or auto-release)
+export const releaseEscrowFunds = async (req, res) => {
+    try {
+        const { userId } = await req.auth();
+        const { transactionId } = req.body;
+
+        const transaction = await Transaction.findOne({ id: transactionId, userId, isPaid: true });
+        if (!transaction) {
+            return res.status(404).json({ message: "Transaction not found" });
+        }
+
+        if (transaction.escrowStatus === "released") {
+            return res.status(400).json({ message: "Funds already released to seller" });
+        }
+
+        transaction.escrowStatus = "released";
+        await transaction.save();
+
+        // Increment seller earned balance upon release
+        await User.findOneAndUpdate({ id: transaction.ownerId }, { $inc: { earned: transaction.amount } });
+
+        return res.json({ success: true, message: "Funds released to seller balance successfully!", transaction });
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ message: error.message });
+    }
+};
+
+// Dispute Escrow Transaction (Buyer action)
+export const disputeEscrowTransaction = async (req, res) => {
+    try {
+        const { userId } = await req.auth();
+        const { transactionId, reason } = req.body;
+
+        const transaction = await Transaction.findOne({ id: transactionId, userId, isPaid: true });
+        if (!transaction) {
+            return res.status(404).json({ message: "Transaction not found" });
+        }
+
+        if (transaction.escrowStatus === "released") {
+            return res.status(400).json({ message: "Cannot dispute after funds have been released" });
+        }
+
+        transaction.escrowStatus = "disputed";
+        transaction.disputeReason = reason || "Buyer reported issue with credentials or transfer";
+        await transaction.save();
+
+        return res.json({ success: true, message: "Escrow dispute registered. Support team notified.", transaction });
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ message: error.message });
+    }
+};
+
+// Seller KYC Verification Submission (Aadhaar / PAN check)
+export const submitSellerKYC = async (req, res) => {
+    try {
+        const { userId } = await req.auth();
+        const { documentType, documentNumber } = req.body;
+
+        if (!documentType || !documentNumber) {
+            return res.status(400).json({ message: "Document type and document number are required" });
+        }
+
+        // Auto verify valid format for Aadhaar (12 digits) or PAN (10 chars)
+        const isAadhaar = documentType === "aadhaar" && /^\d{12}$/.test(documentNumber.trim());
+        const isPAN = documentType === "pan" && /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/i.test(documentNumber.trim());
+
+        const isVerified = isAadhaar || isPAN;
+
+        const user = await User.findOneAndUpdate(
+            { id: userId },
+            {
+                kycDocumentType: documentType,
+                kycNumber: documentNumber,
+                kycStatus: isVerified ? "verified" : "pending",
+                kycVerified: isVerified
+            },
+            { new: true }
+        );
+
+        return res.json({
+            success: true,
+            message: isVerified ? "KYC Identity Verified successfully!" : "KYC submitted and under verification review.",
+            user
+        });
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ message: error.message });
+    }
+};
+
+// Get Seller KYC Status
+export const getSellerKYCStatus = async (req, res) => {
+    try {
+        const { userId } = await req.auth();
+        const user = await User.findOne({ id: userId }).lean();
+        return res.json({
+            success: true,
+            kycVerified: !!user?.kycVerified,
+            kycStatus: user?.kycStatus || "unverified"
+        });
+    } catch (error) {
+        return res.status(500).json({ message: error.message });
     }
 };
