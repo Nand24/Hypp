@@ -1,6 +1,11 @@
 import { Inngest } from "inngest";
-import prisma from "../configs/prisma.js";
 import sendEmail from "../configs/nodemailer.js";
+
+import User from "../models/User.js";
+import Listing from "../models/Listing.js";
+import Chat from "../models/Chat.js";
+import Transaction from "../models/Transaction.js";
+import Credential from "../models/Credential.js";
 
 // Create a client to send and receive events
 export const inngest = new Inngest({ id: "profile-marketplace" });
@@ -13,32 +18,13 @@ const syncUserCreation = inngest.createFunction(
         const { data } = event
 
         // Check if user already exists in the database
-        const user = await prisma.user.findFirst({
-            where: { id: data.id }
-        });
-
-        // Check if user already exists in the database
+        const user = await User.findOne({ id: data.id });
         if (user) {
-            // Update user data if it exists
-            await prisma.user.update({
-                where: { id: data.id },
-                data: {
-                    email: data?.email_addresses[0]?.email_address,
-                    name: data?.first_name + " " + data?.last_name,
-                    image: data?.image_url,
-                }
-            });
+            await User.findOneAndUpdate({ id: data.id }, { email: data?.email_addresses[0]?.email_address, name: data?.first_name + " " + data?.last_name, image: data?.image_url });
             return;
         }
 
-        await prisma.user.create({
-            data: {
-                id: data.id,
-                email: data?.email_addresses[0]?.email_address,
-                name: data?.first_name + " " + data?.last_name,
-                image: data?.image_url,
-            }
-        });
+        await User.create({ id: data.id, email: data?.email_addresses[0]?.email_address, name: data?.first_name + " " + data?.last_name, image: data?.image_url });
     }
 )
 
@@ -50,25 +36,14 @@ const syncUserDeletion = inngest.createFunction(
 
         const { data } = event;
 
-        const listings = await prisma.listing.findMany({
-            where: { ownerId: data.id }
-        })
-
-        const chats = await prisma.chat.findMany({
-            where: { OR: [{ ownerUserId: data.id }, { chatUserId: data.id }] }
-        })
-
-        const transactions = await prisma.transaction.findMany({
-            where: { userId: data.id }
-        })
+        const listings = await Listing.find({ ownerId: data.id });
+        const chats = await Chat.find({ $or: [{ ownerUserId: data.id }, { chatUserId: data.id }] });
+        const transactions = await Transaction.find({ userId: data.id });
 
         if (listings.length === 0 && chats.length === 0 && transactions.length === 0) {
-            await prisma.user.delete({ where: { id: data.id } });
+            await User.deleteOne({ id: data.id });
         } else {
-            await prisma.listing.updateMany({
-                where: { ownerId: data.id },
-                data: { status: "inactive" }
-            })
+            await Listing.updateMany({ ownerId: data.id }, { $set: { status: "inactive" } });
         }
     }
 )
@@ -79,16 +54,7 @@ const syncUserUpdation = inngest.createFunction(
     { event: 'clerk/user.updated' },
     async ({ event }) => {
         const { data } = event;
-        await prisma.user.update({
-            where: {
-                id: data.id,
-            },
-            data: {
-                email: data?.email_addresses[0]?.email_address,
-                name: data?.first_name + " " + data?.last_name,
-                image: data?.image_url,
-            }
-        });
+        await User.findOneAndUpdate({ id: data.id }, { email: data?.email_addresses[0]?.email_address, name: data?.first_name + " " + data?.last_name, image: data?.image_url }, { upsert: true });
     }
 )
 
@@ -100,17 +66,9 @@ const sendPurchaseEmail = inngest.createFunction(
 
         const { transaction } = event.data;
 
-        const customer = await prisma.user.findFirst({
-            where: { id: transaction.userId },
-        });
-
-        const listing = await prisma.listing.findFirst({
-            where: { id: transaction.listingId },
-        });
-
-        const credential = await prisma.credential.findFirst({
-            where: { listingId: transaction.listingId },
-        });
+        const customer = await User.findOne({ id: transaction.userId }).lean();
+        const listing = await Listing.findOne({ id: transaction.listingId }).lean();
+        const credential = await Credential.findOne({ listingId: transaction.listingId }).lean();
 
         await sendEmail({
             to: customer.email,
@@ -121,7 +79,7 @@ const sendPurchaseEmail = inngest.createFunction(
                         
                         <h3>New Credentials</h3>
                         <div>
-                            ${credential.updatedCredential.map((cred) => `<p>${cred.name} : ${cred.value}</p>`).join("")}
+                            ${credential?.updatedCredential?.map((cred) => `<p>${cred.name} : ${cred.value}</p>`).join("") || ''}
                         </div>
                         <p>If you have any questions, please contact us at <a href="mailto:support@example.com">support@example.com</a></p>
                     `,
@@ -138,10 +96,7 @@ const sendNewCredentials = inngest.createFunction(
     async ({ event }) => {
         const { listing, listingId } = event.data;
 
-        const newCredential = await prisma.credential.findFirst({
-            where: { listingId },
-        });
-
+        const newCredential = await Credential.findOne({ listingId }).lean();
         if (newCredential) {
             await sendEmail({
                 to: listing.owner.email,

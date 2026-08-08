@@ -1,6 +1,9 @@
 import stripe from "stripe";
-import prisma from "../configs/prisma.js";
 import { inngest } from "../inngest/index.js";
+
+import Transaction from "../models/Transaction.js";
+import Listing from "../models/Listing.js";
+import User from "../models/User.js";
 
 export const stripeWebhook = async (request, response) => {
     const stripeInstance = new stripe(process.env.STRIPE_SECRET_KEY);
@@ -26,29 +29,16 @@ export const stripeWebhook = async (request, response) => {
                 const { transactionId, appId } = session.metadata;
 
                 if (appId === "social-profile-marketplace" && transactionId) {
-                    const transaction = await prisma.transaction.update({
-                        where: { id: transactionId },
-                        data: { isPaid: true },
-                    });
+                    const transaction = await Transaction.findOneAndUpdate({ id: transactionId }, { isPaid: true }, { new: true }).lean();
 
                     // Send New Credentials to the purchaser using the email address
-                    await inngest.send({
-                        name: "app/purchase",
-                        data: { transaction },
-                    })
+                    await inngest.send({ name: "app/purchase", data: { transaction } });
 
                     // Mark the listing as sold
-                    await prisma.listing.update({
-                        where: { id: transaction.listingId },
-                        data: { status: "sold" }
-                    });
+                    await Listing.findOneAndUpdate({ id: transaction.listingId }, { status: "sold" });
 
                     // Add the amount to the user's earned balance
-                    await prisma.user.update({
-                        where: { id: transaction.ownerId },
-                        data: { earned: { increment: transaction.amount } }
-                    });
-
+                    await User.findOneAndUpdate({ id: transaction.ownerId }, { $inc: { earned: transaction.amount } });
                 }
 
                 break;
