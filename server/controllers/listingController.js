@@ -434,10 +434,12 @@ export const purchaseAccount = async (req, res) => {
             key_secret: process.env.RAZORPAY_KEY_SECRET,
         });
 
+        const currency = req.query.currency || process.env.CURRENCY || "INR";
+
         // Razorpay Order Creation
         const options = {
             amount: Math.round(transaction.amount * 100),
-            currency: "USD",
+            currency: currency,
             receipt: `rcpt_${transaction.id.slice(0, 15)}`,
             notes: {
                 transactionId: transaction.id,

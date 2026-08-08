@@ -57,7 +57,7 @@ export default function ListingDetails() {
             const options = {
                 key: data.keyId,
                 amount: data.amount,
-                currency: data.currency || 'USD',
+                currency: data.currency || 'INR',
                 name: 'Hypp Escrow Marketplace',
                 description: data.title,
                 order_id: data.orderId,
