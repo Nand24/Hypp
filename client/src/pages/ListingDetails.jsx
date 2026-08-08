@@ -154,7 +154,7 @@ export default function ListingDetails() {
                                     {currency}
                                     {listing.price?.toLocaleString()}
                                 </h3>
-                                <p className='text-sm text-slate-500 dark:text-slate-400'>{import.meta.env.VITE_CURRENCY === '₹' ? 'INR' : 'USD'}</p>
+                                <p className='text-sm text-slate-500 dark:text-slate-400'>INR</p>
                             </div>
                         </div>
                     </div>
