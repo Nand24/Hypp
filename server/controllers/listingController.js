@@ -61,20 +61,162 @@ export const addListing = async (req, res) => {
     }
 };
 
+const demoListingsSeed = [
+    {
+        id: "listing_demo_1",
+        ownerId: "user_demo_1",
+        title: "Tech YouTube Channel with 120k Subscribers",
+        platform: "youtube",
+        username: "TechSavvyAlex",
+        followers_count: 120000,
+        engagement_rate: 4.8,
+        monthly_views: 850000,
+        niche: "tech",
+        price: 7500,
+        description: "Established tech review channel with high organic engagement, active Partner Program, and steady monthly AdSense revenue.",
+        verified: true,
+        monetized: true,
+        country: "USA",
+        age_range: "18-34",
+        status: "active",
+        featured: true,
+        images: [
+            "https://images.unsplash.com/photo-1611162617474-5b21e879e113?w=800&auto=format&fit=crop",
+            "https://images.unsplash.com/photo-1611162616305-c69b3fa7fbe0?w=800&auto=format&fit=crop"
+        ],
+        platformAssured: true,
+        isCredentialSubmitted: true,
+        isCredentialVerified: true,
+        isCredentialChanged: true
+    },
+    {
+        id: "listing_demo_2",
+        ownerId: "user_demo_2",
+        title: "Travel Instagram Page with 50k Followers",
+        platform: "instagram",
+        username: "wanderlust.sophia",
+        followers_count: 50000,
+        engagement_rate: 3.5,
+        monthly_views: 210000,
+        niche: "travel",
+        price: 2800,
+        description: "Beautifully curated travel page with a highly active audience in North America and Western Europe. Great brand sponsor potential.",
+        verified: true,
+        monetized: false,
+        country: "Canada",
+        age_range: "25-44",
+        status: "active",
+        featured: true,
+        images: [
+            "https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?w=800&auto=format&fit=crop"
+        ],
+        platformAssured: true,
+        isCredentialSubmitted: true,
+        isCredentialVerified: true,
+        isCredentialChanged: true
+    },
+    {
+        id: "listing_demo_3",
+        ownerId: "user_demo_3",
+        title: "Fitness TikTok Account with 300k Followers",
+        platform: "tiktok",
+        username: "fitwithdavid",
+        followers_count: 300000,
+        engagement_rate: 5.2,
+        monthly_views: 2500000,
+        niche: "fitness",
+        price: 11500,
+        description: "Viral workout & nutrition TikTok with massive reach. Creator Fund enabled with recurring brand sponsorship inquiries.",
+        verified: true,
+        monetized: true,
+        country: "UK",
+        age_range: "18-34",
+        status: "active",
+        featured: true,
+        images: [
+            "https://images.unsplash.com/photo-1517838277536-f5f99be501cd?w=800&auto=format&fit=crop"
+        ],
+        platformAssured: true,
+        isCredentialSubmitted: true,
+        isCredentialVerified: true,
+        isCredentialChanged: true
+    },
+    {
+        id: "listing_demo_4",
+        ownerId: "user_demo_1",
+        title: "Fashion Pinterest Board with 90k Monthly Impressions",
+        platform: "pinterest",
+        username: "stylebyalex",
+        followers_count: 18500,
+        engagement_rate: 4.1,
+        monthly_views: 90000,
+        niche: "fashion",
+        price: 1250,
+        description: "Highly active fashion and outfit inspiration Pinterest account with high outbound click-through rates for affiliate marketing.",
+        verified: false,
+        monetized: false,
+        country: "USA",
+        age_range: "25-54",
+        status: "active",
+        featured: false,
+        images: [
+            "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=800&auto=format&fit=crop"
+        ],
+        platformAssured: false,
+        isCredentialSubmitted: true,
+        isCredentialVerified: true,
+        isCredentialChanged: true
+    },
+    {
+        id: "listing_demo_5",
+        ownerId: "user_demo_2",
+        title: "Crypto & Finance Twitter (X) Account with 45k Followers",
+        platform: "twitter",
+        username: "cryptovision",
+        followers_count: 45000,
+        engagement_rate: 4.5,
+        monthly_views: 1200000,
+        niche: "finance",
+        price: 3600,
+        description: "Engaged Web3 and financial market discussion account. Verified Gold Checkmark badge eligible with active audience.",
+        verified: true,
+        monetized: true,
+        country: "USA",
+        age_range: "25-44",
+        status: "active",
+        featured: false,
+        images: [
+            "https://images.unsplash.com/photo-1621416894569-0f39ed31d247?w=800&auto=format&fit=crop"
+        ],
+        platformAssured: true,
+        isCredentialSubmitted: true,
+        isCredentialVerified: true,
+        isCredentialChanged: true
+    }
+];
+
 // Controller For Getting All Public Listing
 export const getAllPublicListing = async (req, res) => {
     try {
-        const listings = await Listing.find({ status: "active" }).sort({ createdAt: -1 }).lean();
+        let listings = await Listing.find({ status: "active" }).sort({ createdAt: -1 }).lean();
 
         if (!listings || listings.length === 0) {
-            return res.json({ listings: [] });
+            try {
+                await Listing.insertMany(demoListingsSeed);
+                listings = await Listing.find({ status: "active" }).sort({ createdAt: -1 }).lean();
+            } catch (seedErr) {
+                console.log("Auto seed error:", seedErr);
+            }
         }
 
         // attach owner details
         const ownerIds = [...new Set(listings.map((l) => l.ownerId))];
         const owners = await User.find({ id: { $in: ownerIds } }).select("id email name image").lean();
         const ownerMap = Object.fromEntries(owners.map((o) => [o.id, o]));
-        const listingsWithOwner = listings.map((l) => ({ ...l, owner: ownerMap[l.ownerId] || null }));
+        const listingsWithOwner = listings.map((l) => ({
+            ...l,
+            owner: ownerMap[l.ownerId] || { name: "Verified Seller", email: "seller@hypp.com", image: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop" }
+        }));
 
         return res.json({ listings: listingsWithOwner });
     } catch (error) {
