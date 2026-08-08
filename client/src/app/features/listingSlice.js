@@ -9,7 +9,7 @@ export const getAllPublicListing = createAsyncThunk("listing/getAllPublicListing
         return data;
     } catch (error) {
         console.log(error);
-        return [];
+        return { listings: [] };
     }
 });
 
@@ -21,7 +21,7 @@ export const getAllUserListing = createAsyncThunk("listing/getAllUserListing", a
         return data;
     } catch (error) {
         console.log(error);
-        return [];
+        return { listings: [], balance: { earned: 0, withdrawn: 0, available: 0 } };
     }
 });
 
@@ -38,16 +38,20 @@ const listingSlice = createSlice({
     },
     reducers: {
         setListings: (state, action) => {
-            state.listings = action.payload;
+            state.listings = action.payload || [];
         }
     },
     extraReducers: (builder) => {
         builder.addCase(getAllPublicListing.fulfilled, (state, action) => {
-            state.listings = action.payload.listings;
+            state.listings = action.payload?.listings || [];
         });
         builder.addCase(getAllUserListing.fulfilled, (state, action) => {
-            state.userListings = action.payload.listings;
-            state.balance = action.payload.balance;
+            state.userListings = action.payload?.listings || [];
+            state.balance = action.payload?.balance || {
+                earned: 0,
+                withdrawn: 0,
+                available: 0,
+            };
         });
     },
 });
