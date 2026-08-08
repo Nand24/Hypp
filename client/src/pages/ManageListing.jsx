@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Loader2Icon, Upload } from 'lucide-react';
+import { Loader2Icon, Upload, Sparkles, ShieldCheck, ShieldAlert } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '@clerk/clerk-react';
 import { toast } from 'react-hot-toast';
@@ -16,6 +16,9 @@ const ManageListing = () => {
 
     const [loadingListing, setLoadingListing] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
+    const [aiValuation, setAiValuation] = useState(null);
+    const [loadingAIValuation, setLoadingAIValuation] = useState(false);
+    const [loadingAIDesc, setLoadingAIDesc] = useState(false);
 
     const [formData, setFormData] = useState({
         title: '',
@@ -40,6 +43,43 @@ const ManageListing = () => {
 
     const handleInputChange = (field, value) => {
         setFormData((prev) => ({ ...prev, [field]: value }));
+    };
+
+    const handleGetAIValuation = async () => {
+        if (!formData.followers_count) return toast.error('Please enter Followers Count first');
+        try {
+            setLoadingAIValuation(true);
+            const token = await getToken();
+            const { data } = await api.post('/api/ai/valuation', formData, { headers: { Authorization: `Bearer ${token}` } });
+            if (data.success) {
+                setAiValuation(data.valuation);
+                if (data.valuation.estimatedValueMin) {
+                    setFormData((prev) => ({ ...prev, price: prev.price || Math.round((data.valuation.estimatedValueMin + data.valuation.estimatedValueMax) / 2) }));
+                }
+                toast.success('AI Valuation calculated!');
+            }
+        } catch (err) {
+            toast.error(err?.response?.data?.message || 'AI Valuation failed');
+        } finally {
+            setLoadingAIValuation(false);
+        }
+    };
+
+    const handleGenerateAIDesc = async () => {
+        if (!formData.title || !formData.platform) return toast.error('Please enter Title and Platform first');
+        try {
+            setLoadingAIDesc(true);
+            const token = await getToken();
+            const { data } = await api.post('/api/ai/generate-description', formData, { headers: { Authorization: `Bearer ${token}` } });
+            if (data.success) {
+                setFormData((prev) => ({ ...prev, description: data.description }));
+                toast.success('AI Description generated!');
+            }
+        } catch (err) {
+            toast.error(err?.response?.data?.message || 'AI Generation failed');
+        } finally {
+            setLoadingAIDesc(false);
+        }
     };
 
     const handleImageUpload = async (event) => {
@@ -172,8 +212,47 @@ const ManageListing = () => {
 
                     {/* PRICING */}
                     <Section title='Pricing & Description'>
-                        <InputField label='Asking Price (INR) *' type='number' min={0} value={formData.price} placeholder='2500.00' onChange={(v) => handleInputChange('price', v)} required={true} />
-                        <TextareaField label='Description *' value={formData.description} onChange={(v) => handleInputChange('description', v)} required={true} />
+                        <div className='flex items-center justify-between gap-4'>
+                            <div className='flex-1'>
+                                <InputField label='Asking Price (INR) *' type='number' min={0} value={formData.price} placeholder='2500.00' onChange={(v) => handleInputChange('price', v)} required={true} />
+                            </div>
+                            <button
+                                type='button'
+                                onClick={handleGetAIValuation}
+                                disabled={loadingAIValuation}
+                                className='mt-5 px-4 py-2.5 bg-indigo-600 text-white rounded-lg text-sm font-semibold hover:bg-indigo-700 transition flex items-center gap-2 shadow-sm disabled:opacity-50'
+                            >
+                                {loadingAIValuation ? <Loader2Icon className='size-4 animate-spin' /> : <Sparkles className='size-4' />} Get AI Valuation
+                            </button>
+                        </div>
+
+                        {aiValuation && (
+                            <div className='p-4 bg-indigo-50/80 border border-indigo-200 rounded-xl space-y-2'>
+                                <div className='flex items-center justify-between text-indigo-900 font-semibold text-sm'>
+                                    <span>🤖 AI Valuation Range: ₹{aiValuation.estimatedValueMin?.toLocaleString()} – ₹{aiValuation.estimatedValueMax?.toLocaleString()}</span>
+                                    <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${aiValuation.riskRating === 'Low' ? 'bg-green-100 text-green-700' : aiValuation.riskRating === 'Medium' ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700'}`}>
+                                        {aiValuation.riskRating} Risk
+                                    </span>
+                                </div>
+                                <p className='text-xs text-indigo-700'>{aiValuation.riskReason}</p>
+                                {aiValuation.sellingTip && <p className='text-xs text-slate-600 italic'>💡 Tip: {aiValuation.sellingTip}</p>}
+                            </div>
+                        )}
+
+                        <div className='space-y-2'>
+                            <div className='flex items-center justify-between'>
+                                <label className='block text-sm font-medium text-gray-700'>Description *</label>
+                                <button
+                                    type='button'
+                                    onClick={handleGenerateAIDesc}
+                                    disabled={loadingAIDesc}
+                                    className='px-3 py-1 bg-purple-50 text-purple-700 border border-purple-200 rounded-lg text-xs font-semibold hover:bg-purple-100 transition flex items-center gap-1.5 disabled:opacity-50'
+                                >
+                                    {loadingAIDesc ? <Loader2Icon className='size-3.5 animate-spin' /> : <Sparkles className='size-3.5' />} Generate AI Description
+                                </button>
+                            </div>
+                            <textarea rows={5} value={formData.description} onChange={(e) => handleInputChange('description', e.target.value)} className='w-full px-3 py-1.5 text-gray-600 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 border-gray-300' required={true} />
+                        </div>
                     </Section>
 
                     {/* IMAGES */}

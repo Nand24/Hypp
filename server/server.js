@@ -9,6 +9,7 @@ import { autoSyncClerkUsers } from "./utils/autoSyncClerk.js";
 import adminRouter from "./routes/adminRoutes.js";
 import listingRouter from "./routes/listingRoutes.js";
 import chatRouter from "./routes/chatRoutes.js";
+import aiRouter from "./routes/aiRoutes.js";
 import { razorpayWebhook } from "./controllers/razorpayWebhook.js";
 
 const app = express();
@@ -35,6 +36,7 @@ app.use("/api/inngest", serve({ client: inngest, functions }));
 app.use("/api/admin", adminRouter);
 app.use("/api/listing", listingRouter);
 app.use("/api/chat", chatRouter);
+app.use("/api/ai", aiRouter);
 
 const PORT = process.env.PORT || 3000;
 

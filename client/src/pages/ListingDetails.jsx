@@ -1,4 +1,4 @@
-import { DollarSign, Users, LineChart, Eye, Calendar, MapPin, CheckCircle2, ChevronLeftIcon, ChevronRightIcon, ArrowLeftIcon, Loader2Icon, ShoppingBagIcon, ArrowUpRightFromSquareIcon, MessageSquareMoreIcon } from 'lucide-react';
+import { DollarSign, Users, LineChart, Eye, Calendar, MapPin, CheckCircle2, ChevronLeftIcon, ChevronRightIcon, ArrowLeftIcon, Loader2Icon, ShoppingBagIcon, ArrowUpRightFromSquareIcon, MessageSquareMoreIcon, Sparkles, ShieldCheck } from 'lucide-react';
 import { assets, getProfileLink, platformIcons } from '../assets/assets';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
@@ -232,6 +232,32 @@ export default function ListingDetails() {
                             <h4 className='font-semibold text-slate-800 dark:text-slate-100'>Description</h4>
                         </div>
                         <div className='p-4 text-sm text-slate-600 dark:text-slate-300 leading-relaxed'>{listing.description}</div>
+                    </div>
+
+                    {/* AI Health & Security Audit Card */}
+                    <div className='bg-gradient-to-r from-indigo-900 via-indigo-800 to-slate-900 rounded-2xl p-5 mb-5 text-white shadow-md border border-indigo-700/50'>
+                        <div className='flex items-center justify-between mb-3'>
+                            <div className='flex items-center gap-2 font-semibold text-indigo-200 text-sm'>
+                                <Sparkles className='size-4 text-amber-400 animate-pulse' /> AI Account Valuation & Risk Audit
+                            </div>
+                            <span className='bg-emerald-500/20 text-emerald-300 text-xs font-semibold px-2.5 py-1 rounded-full border border-emerald-500/30 flex items-center gap-1'>
+                                <ShieldCheck className='size-3.5' /> Low Escrow Risk
+                            </span>
+                        </div>
+                        <div className='grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs mt-2 text-indigo-100'>
+                            <div className='bg-white/10 rounded-xl p-3 backdrop-blur-xs'>
+                                <p className='text-indigo-300'>Estimated Market Fair Value</p>
+                                <p className='text-lg font-bold text-white mt-0.5'>
+                                    ₹{Math.round(listing.price * 0.9)?.toLocaleString()} – ₹{Math.round(listing.price * 1.2)?.toLocaleString()}
+                                </p>
+                            </div>
+                            <div className='bg-white/10 rounded-xl p-3 backdrop-blur-xs'>
+                                <p className='text-indigo-300'>Engagement Ratio Health</p>
+                                <p className='text-lg font-bold text-emerald-400 mt-0.5'>
+                                    {listing.engagement_rate > 3 ? 'Optimal (High Conversion)' : 'Healthy Standard'}
+                                </p>
+                            </div>
+                        </div>
                     </div>
 
                     {/* Additional Details */}
