@@ -1,6 +1,6 @@
-import fs from "fs";
+import crypto from "crypto";
 import imagekit from "../configs/imagekit.js";
-import Stripe from "stripe";
+import Razorpay from "razorpay";
 import { inngest } from "../inngest/index.js";
 
 import Listing from "../models/Listing.js";
@@ -412,7 +412,6 @@ export const purchaseAccount = async (req, res) => {
     try {
         const { userId } = await req.auth();
         const { listingId } = req.params;
-        const { origin } = req.headers;
 
         const listing = await Listing.findOne({ id: listingId, status: "active" });
 
@@ -424,38 +423,72 @@ export const purchaseAccount = async (req, res) => {
             return res.status(400).json({ message: "You can't purchase your own listing" });
         }
 
-
         const transaction = await Transaction.create({ listingId, ownerId: listing.ownerId, userId, amount: listing.price });
 
-        // Stripe Payment Link
-        const stripeInstance = new Stripe(process.env.STRIPE_SECRET_KEY);
+        if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET || process.env.RAZORPAY_KEY_ID.includes("---")) {
+            return res.status(400).json({ message: "Razorpay keys are missing or invalid. Please set RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET in server/.env" });
+        }
 
-        const line_items = [
-            {
-                price_data: {
-                    currency: "usd",
-                    product_data: {
-                        name: `Purchasing Account @${listing.username} of ${listing.platform} platform`,
-                    },
-                    unit_amount: Math.floor(transaction.amount) * 100,
-                },
-                quantity: 1,
-            },
-        ];
-
-        const session = await stripeInstance.checkout.sessions.create({
-            success_url: `${origin}/loading/my-orders`,
-            cancel_url: `${origin}/marketplace`,
-            line_items: line_items,
-            mode: "payment",
-            metadata: {
-                transactionId: transaction.id,
-                appId: "social-profile-marketplace",
-            },
-            expires_at: Math.floor(Date.now() / 1000) + 30 * 60, // Expires in 30 minutes
+        const razorpayInstance = new Razorpay({
+            key_id: process.env.RAZORPAY_KEY_ID,
+            key_secret: process.env.RAZORPAY_KEY_SECRET,
         });
 
-        return res.json({ paymentLink: session.url });
+        // Razorpay Order Creation
+        const options = {
+            amount: Math.round(transaction.amount * 100),
+            currency: "USD",
+            receipt: `rcpt_${transaction.id.slice(0, 15)}`,
+            notes: {
+                transactionId: transaction.id,
+                listingId: listing.id,
+                userId,
+            },
+        };
+
+        const order = await razorpayInstance.orders.create(options);
+
+        return res.json({
+            orderId: order.id,
+            amount: order.amount,
+            currency: order.currency,
+            keyId: process.env.RAZORPAY_KEY_ID,
+            transactionId: transaction.id,
+            title: `Purchasing Account @${listing.username} (${listing.platform})`,
+        });
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ message: error.code || error.message });
+    }
+};
+
+export const verifyRazorpayPayment = async (req, res) => {
+    try {
+        const { razorpay_order_id, razorpay_payment_id, razorpay_signature, transactionId } = req.body;
+
+        const body = razorpay_order_id + "|" + razorpay_payment_id;
+        const expectedSignature = crypto
+            .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
+            .update(body.toString())
+            .digest("hex");
+
+        if (expectedSignature === razorpay_signature) {
+            const transaction = await Transaction.findOneAndUpdate(
+                { id: transactionId },
+                { isPaid: true },
+                { new: true }
+            ).lean();
+
+            if (transaction) {
+                await inngest.send({ name: "app/purchase", data: { transaction } });
+                await Listing.findOneAndUpdate({ id: transaction.listingId }, { status: "sold" });
+                await User.findOneAndUpdate({ id: transaction.ownerId }, { $inc: { earned: transaction.amount } });
+            }
+
+            return res.json({ success: true, message: "Payment verified successfully" });
+        } else {
+            return res.status(400).json({ success: false, message: "Invalid payment signature" });
+        }
     } catch (error) {
         console.log(error);
         res.status(500).json({ message: error.code || error.message });

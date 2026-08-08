@@ -15,7 +15,7 @@
   <img src="https://img.shields.io/badge/Node.js-Express_5-339933?logo=nodedotjs&logoColor=white" alt="Node.js Express" />
   <img src="https://img.shields.io/badge/MongoDB-Mongoose-47A248?logo=mongodb&logoColor=white" alt="MongoDB" />
   <img src="https://img.shields.io/badge/Authentication-Clerk-6C47FF?logo=clerk&logoColor=white" alt="Clerk Auth" />
-  <img src="https://img.shields.io/badge/Payments-Stripe-008CDD?logo=stripe&logoColor=white" alt="Stripe" />
+  <img src="https://img.shields.io/badge/Payments-Razorpay-0C2340?logo=razorpay&logoColor=white" alt="Razorpay" />
 </p>
 
 ---
@@ -34,7 +34,7 @@
 - **Search & Advanced Filtering**: Search listings by keyword, niche tags, or category.
 
 ### 🔒 Escrow & Safe Credential Exchange
-- **Stripe Checkout Integration**: Secure card payment handling with automated payment links.
+- **Razorpay Checkout Integration**: Secure payment handling supporting Cards, UPI, NetBanking & Wallets.
 - **Credential Protection Workflow**: Two-step credential verification ensuring account details are validated before funds are released to sellers.
 - **Seller Payouts & Withdrawals**: Account earnings management with bank withdrawal requests.
 
@@ -44,7 +44,7 @@
 
 ### ⚡ Background Jobs & Webhook Automation (Inngest)
 - **User Synchronization**: Synchronizes Clerk user creation, profile updates, and account deletions directly to MongoDB.
-- **Payment Verification**: Asynchronous Stripe event processing for order fulfillment.
+- **Payment Verification**: Asynchronous Razorpay webhook processing for order fulfillment.
 - **Email Notifications**: Automated transactional emails (order confirmations, credential release updates) powered by **Nodemailer**.
 
 ### 🛡️ Security & Authentication
@@ -74,7 +74,7 @@
 | **MongoDB & Mongoose 7** | NoSQL database & ODM modeling |
 | **WebSockets (`ws`)** | Real-time bidirectional chat communication |
 | **Clerk Express** | Express authentication middleware & token validation |
-| **Stripe SDK** | Checkout session & payment link creation |
+| **Razorpay SDK** | Order creation & payment signature verification |
 | **ImageKit & Multer** | Cloud media storage & multipart image uploading |
 | **Inngest** | Event-driven background job orchestration & webhooks |
 | **Nodemailer** | SMTP transactional email service |
@@ -100,7 +100,7 @@ Hypp/
 │   └── vite.config.js          # Vite configuration with Tailwind plugin
 │
 ├── server/                     # Backend API (Express 5 + Mongoose)
-│   ├── configs/                # MongoDB, ImageKit, & Stripe configurations
+│   ├── configs/                # MongoDB, ImageKit, & Razorpay configurations
 │   ├── controllers/            # Business logic (admin, chat, listing controllers)
 │   ├── inngest/                # Inngest functions & webhook event handlers
 │   ├── middlewares/            # Clerk auth & upload middlewares
@@ -126,7 +126,9 @@ PORT=3000
 MONGODB_URI=mongodb+srv://<username>:<password>@cluster.mongodb.net/hypp
 CLERK_PUBLISHABLE_KEY=pk_test_...
 CLERK_SECRET_KEY=sk_test_...
-STRIPE_SECRET_KEY=sk_test_...
+RAZORPAY_KEY_ID=rzp_test_...
+RAZORPAY_KEY_SECRET=your_razorpay_secret
+RAZORPAY_WEBHOOK_SECRET=your_razorpay_webhook_secret
 IMAGEKIT_PUBLIC_KEY=public_...
 IMAGEKIT_PRIVATE_KEY=private_...
 IMAGEKIT_URL_ENDPOINT=https://ik.imagekit.io/...

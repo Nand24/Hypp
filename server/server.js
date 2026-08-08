@@ -9,7 +9,7 @@ import { autoSyncClerkUsers } from "./utils/autoSyncClerk.js";
 import adminRouter from "./routes/adminRoutes.js";
 import listingRouter from "./routes/listingRoutes.js";
 import chatRouter from "./routes/chatRoutes.js";
-import { stripeWebhook } from "./controllers/stripeWebhook.js";
+import { razorpayWebhook } from "./controllers/razorpayWebhook.js";
 
 const app = express();
 
@@ -18,8 +18,8 @@ connectDB()
 	.then(() => autoSyncClerkUsers())
 	.catch((err) => console.error("Failed to connect to MongoDB:", err));
 
-// Stripe Webhooks Route
-app.use('/api/stripe', express.raw({type: 'application/json'}), stripeWebhook)
+// Razorpay Webhooks Route
+app.use('/api/razorpay', express.raw({type: 'application/json'}), razorpayWebhook)
 
 // Middlewares
 app.use(express.json());

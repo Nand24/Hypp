@@ -38,11 +38,65 @@ export default function ListingDetails() {
     const purchaseAccount = async () => {
         try {
             if (!user) return openSignIn();
-            toast.loading('creating payment link...');
+            toast.loading('Initializing order...');
             const token = await getToken();
             const { data } = await api.get(`/api/listing/purchase-account/${listing.id}`, { headers: { Authorization: `Bearer ${token}` } });
             toast.dismissAll();
-            window.location.href = data.paymentLink;
+
+            // Load Razorpay Checkout SDK dynamically if needed
+            if (!window.Razorpay) {
+                await new Promise((resolve) => {
+                    const script = document.createElement('script');
+                    script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+                    script.onload = () => resolve(true);
+                    script.onerror = () => resolve(false);
+                    document.body.appendChild(script);
+                });
+            }
+
+            const options = {
+                key: data.keyId,
+                amount: data.amount,
+                currency: data.currency || 'USD',
+                name: 'Hypp Escrow Marketplace',
+                description: data.title,
+                order_id: data.orderId,
+                prefill: {
+                    name: user.fullName || user.firstName || 'Buyer',
+                    email: user.primaryEmailAddress?.emailAddress || '',
+                },
+                theme: {
+                    color: '#6366f1',
+                },
+                handler: async function (response) {
+                    try {
+                        toast.loading('Verifying payment...');
+                        const verifyRes = await api.post(
+                            '/api/listing/verify-razorpay',
+                            {
+                                razorpay_order_id: response.razorpay_order_id,
+                                razorpay_payment_id: response.razorpay_payment_id,
+                                razorpay_signature: response.razorpay_signature,
+                                transactionId: data.transactionId,
+                            },
+                            { headers: { Authorization: `Bearer ${token}` } }
+                        );
+                        toast.dismissAll();
+                        if (verifyRes.data?.success) {
+                            toast.success('Payment Successful!');
+                            navigate('/loading/my-orders');
+                        } else {
+                            toast.error('Payment verification failed');
+                        }
+                    } catch (err) {
+                        toast.dismissAll();
+                        toast.error(err?.response?.data?.message || 'Verification Error');
+                    }
+                },
+            };
+
+            const rzp = new window.Razorpay(options);
+            rzp.open();
         } catch (error) {
             toast.dismissAll();
             toast.error(error?.response?.data?.message || error.message);
