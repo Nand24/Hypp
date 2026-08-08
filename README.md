@@ -5,7 +5,7 @@
 </p>
 
 <p align="center">
-  <b>A secure, full-stack MERN marketplace platform for buying and selling verified social media accounts with automated escrow protection.</b>
+  <b>A secure, full-stack MERN marketplace platform for buying and selling verified social media accounts with AI-powered valuations, Govt ID (KYC) verification, and 48-hour escrow protection.</b>
 </p>
 
 <p align="center">
@@ -14,42 +14,43 @@
   <img src="https://img.shields.io/badge/TailwindCSS-v4-06B6D4?logo=tailwindcss&logoColor=white" alt="Tailwind CSS v4" />
   <img src="https://img.shields.io/badge/Node.js-Express_5-339933?logo=nodedotjs&logoColor=white" alt="Node.js Express" />
   <img src="https://img.shields.io/badge/MongoDB-Mongoose-47A248?logo=mongodb&logoColor=white" alt="MongoDB" />
+  <img src="https://img.shields.io/badge/AI-Gemini_2.0_Flash-4285F4?logo=googlegemini&logoColor=white" alt="Gemini AI" />
   <img src="https://img.shields.io/badge/Authentication-Clerk-6C47FF?logo=clerk&logoColor=white" alt="Clerk Auth" />
-  <img src="https://img.shields.io/badge/Payments-Razorpay-0C2340?logo=razorpay&logoColor=white" alt="Razorpay" />
+  <img src="https://img.shields.io/badge/Payments-Razorpay_INR-0C2340?logo=razorpay&logoColor=white" alt="Razorpay" />
 </p>
 
 ---
 
 ## 🌟 Overview
 
-**hypp.** is an enterprise-grade MERN (MongoDB, Express, React, Node.js) web application designed for social media account buyers, creators, and digital entrepreneurs. It provides a safe, transparent ecosystem to list, discover, negotiate, and acquire established social media profiles (YouTube, Instagram, TikTok, Twitter, Pinterest, Twitch, and Snapchat) with guaranteed escrow protection and automated credential verification.
+**hypp.** is an enterprise-grade MERN (MongoDB, Express, React, Node.js) web application designed for social media account buyers, creators, and digital entrepreneurs. It provides a safe, transparent ecosystem to list, discover, negotiate, and acquire established social media profiles (YouTube, Instagram, TikTok, Twitter, Pinterest, Twitch, and Snapchat) localized for the Indian market with **INR (`₹`)** currency, guaranteed **48-Hour Escrow Protection**, **AI Valuation Engine**, and **Seller KYC Identity Verification**.
 
 ---
 
 ## ✨ Key Features
 
+### 🤖 AI-Powered Intelligence (Gemini 2.0 Flash)
+- **AI Account Valuation Engine**: Analyzes platform metrics, follower count, engagement rate %, monthly impressions, and niche to compute fair market price ranges in **₹ (INR)**.
+- **AI Risk Audit Score**: Calculates risk ratings (Low, Medium, High) to flag bot accounts or low-engagement profiles before purchase.
+- **AI Description Generator**: One-click AI copywriter for sellers to generate compelling, high-converting listing descriptions.
+- **AI Health Audit Badge**: Glassmorphism audit card on listing pages highlighting estimated fair value and engagement conversion health.
+
+### 🛡️ Security & Escrow Enhancements
+- **48-Hour Inspection Window**: Escrow funds are held safely for 48 hours post-purchase, allowing buyers to verify login credentials and email transfers.
+- **Buyer Approve & Release System**: Buyers can manually click **Approve & Release Funds** in *My Orders* to instantly transfer funds to the seller's balance upon successful takeover.
+- **Dispute & Fraud Reporting**: Buyers can register an escrow dispute if credentials are invalid, freezing payouts pending support review.
+- **Seller Identity Verification (KYC)**: Sellers verify identity via Government IDs (**Aadhaar 12-digit / PAN 10-char**) to receive a **`Verified Seller ✓`** badge.
+- **Automated Metrics Verifier**: Auto-validates account follower metrics to assign a **`Verified Account ✓`** tag.
+- **Owner Self-Purchase Prevention**: Server-enforced checks preventing listing owners from purchasing their own assets.
+
 ### 🛒 Buyer & Creator Marketplace
-- **Verified Listings**: Filter accounts by platform, follower count, engagement rate, monthly views, niche, country, and monetization status.
-- **Audience Metrics & Proof**: Interactive screenshot carousels and verified analytics proof.
-- **Search & Advanced Filtering**: Search listings by keyword, niche tags, or category.
+- **Indian Market Localization**: Built-in support for **INR (`₹`)** pricing, Razorpay payment flows (UPI, Netbanking, Cards, Wallets), and Brevo SMTP transactional emails.
+- **Advanced Filtering**: Filter accounts by platform, follower count, engagement rate, monthly views, niche, country, and monetization status.
+- **Screenshot Proof & Analytics**: Interactive image carousels and verified analytics proof uploads.
 
-### 🔒 Escrow & Safe Credential Exchange
-- **Razorpay Checkout Integration**: Secure payment handling supporting Cards, UPI, NetBanking & Wallets.
-- **Credential Protection Workflow**: Two-step credential verification ensuring account details are validated before funds are released to sellers.
-- **Seller Payouts & Withdrawals**: Account earnings management with bank withdrawal requests.
-
-### 💬 Real-Time Messaging
-- **Live Buyer-Seller Chat**: Real-time communication powered by **WebSockets (`ws`)** and REST fallbacks.
-- **Direct Inquiry**: Instant chat initiation directly tied to individual listing IDs.
-
-### ⚡ Background Jobs & Webhook Automation (Inngest)
-- **User Synchronization**: Synchronizes Clerk user creation, profile updates, and account deletions directly to MongoDB.
-- **Payment Verification**: Asynchronous Razorpay webhook processing for order fulfillment.
-- **Email Notifications**: Automated transactional emails (order confirmations, credential release updates) powered by **Nodemailer**.
-
-### 🛡️ Security & Authentication
-- **Clerk Authentication**: JWT-based session security and social sign-ins.
-- **Role-Based Access Control**: Separate permissions for general users and site administrators.
+### 💬 Real-Time Messaging & Escrow Payouts
+- **Live Buyer-Seller Chat**: Real-time communication powered by **WebSockets (`ws`)** with REST fallbacks.
+- **Direct Payout Withdrawals**: Sellers manage earnings and submit direct bank withdrawal requests once escrow holds complete.
 
 ---
 
@@ -59,12 +60,12 @@
 | Technology | Description |
 | :--- | :--- |
 | **React 19** | UI Library for dynamic components |
-| **Vite 7** | Next-generation fast frontend tooling |
+| **Vite 7** | Fast frontend build tooling & dev server |
 | **Tailwind CSS v4** | Utility-first styling engine with `@tailwindcss/vite` |
-| **Redux Toolkit** | Centralized global state management (Listings, Chat) |
-| **React Router DOM v7** | Client-side Single Page Application (SPA) routing |
-| **Clerk React** | User authentication UI components & hook wrappers |
-| **Lucide React** | Modern icon set |
+| **Redux Toolkit** | Centralized global state management |
+| **React Router DOM v7** | Client-side Single Page Application routing |
+| **Clerk React** | User authentication UI components & hooks |
+| **Lucide React** | Modern UI icon set |
 | **React Hot Toast** | Toast notification feedback |
 
 ### **Backend (`/server`)**
@@ -72,133 +73,65 @@
 | :--- | :--- |
 | **Node.js & Express 5** | RESTful API server framework |
 | **MongoDB & Mongoose 7** | NoSQL database & ODM modeling |
+| **Google Gemini AI SDK** | `@google/genai` 2.0 Flash AI for valuation & copy generation |
 | **WebSockets (`ws`)** | Real-time bidirectional chat communication |
 | **Clerk Express** | Express authentication middleware & token validation |
-| **Razorpay SDK** | Order creation & payment signature verification |
+| **Razorpay SDK** | Order creation & payment HMAC signature verification |
 | **ImageKit & Multer** | Cloud media storage & multipart image uploading |
-| **Inngest** | Event-driven background job orchestration & webhooks |
-| **Nodemailer** | SMTP transactional email service |
-
----
-
-## 📁 Repository Structure
-
-```
-Hypp/
-├── client/                     # Frontend (React 19 + Vite)
-│   ├── public/                 # Static assets & favicon.svg
-│   ├── src/
-│   │   ├── app/                # Redux Toolkit store & slices
-│   │   ├── assets/             # Branding icons & dummy data
-│   │   ├── components/         # Reusable UI components (Navbar, Hero, Cards, Features, CTA, Footer)
-│   │   ├── configs/            # Axios instance configuration
-│   │   ├── pages/              # SPA Pages (Home, Marketplace, ListingDetails, Messages, MyListings, MyOrders)
-│   │   ├── index.css           # Global Tailwind CSS v4 styles
-│   │   └── main.jsx            # React root mount & providers
-│   ├── netlify.toml            # Netlify deployment & SPA rewrite rules
-│   ├── package.json
-│   └── vite.config.js          # Vite configuration with Tailwind plugin
-│
-├── server/                     # Backend API (Express 5 + Mongoose)
-│   ├── configs/                # MongoDB, ImageKit, & Razorpay configurations
-│   ├── controllers/            # Business logic (admin, chat, listing controllers)
-│   ├── inngest/                # Inngest functions & webhook event handlers
-│   ├── middlewares/            # Clerk auth & upload middlewares
-│   ├── models/                 # Mongoose schemas (User, Listing, Chat, Message, Order, Credential, Withdrawal)
-│   ├── routes/                 # Express API route modules
-│   ├── scripts/                # Database smoke tests & verification scripts
-│   ├── package.json
-│   └── server.js               # Entry point (Express app & WebSocket server)
-│
-├── netlify.toml                # Monorepo build configuration
-└── README.md
-```
+| **Inngest** | Event-driven background job orchestration |
+| **Nodemailer & Brevo** | Instant transactional SMTP email delivery |
 
 ---
 
 ## ⚙️ Environment Variables Setup
 
 ### 1. Server Environment (`server/.env`)
-Create a `.env` file in the `server` directory:
-
 ```env
+NODE_ENV="development"
 PORT=3000
 MONGODB_URI=mongodb+srv://<username>:<password>@cluster.mongodb.net/hypp
+GEMINI_API_KEY=your_gemini_api_key
 CLERK_PUBLISHABLE_KEY=pk_test_...
 CLERK_SECRET_KEY=sk_test_...
 RAZORPAY_KEY_ID=rzp_test_...
 RAZORPAY_KEY_SECRET=your_razorpay_secret
 RAZORPAY_WEBHOOK_SECRET=your_razorpay_webhook_secret
-IMAGEKIT_PUBLIC_KEY=public_...
-IMAGEKIT_PRIVATE_KEY=private_...
-IMAGEKIT_URL_ENDPOINT=https://ik.imagekit.io/...
-SMTP_HOST=smtp.gmail.com
-SMTP_PORT=587
-SMTP_USER=your_email@gmail.com
-SMTP_PASS=your_app_password
+IMAGEKIT_PRIVATE_KEY=your_imagekit_private_key
+SENDER_EMAIL=your_email@gmail.com
+SMTP_USER=your_smtp_user
+SMTP_PASS=your_smtp_password
 INNGEST_EVENT_KEY=your_inngest_key
 INNGEST_SIGNING_KEY=your_inngest_signing_key
 ```
 
 ### 2. Client Environment (`client/.env`)
-Create a `.env` file in the `client` directory:
-
 ```env
-VITE_BASEURL="https://hypp.onrender.com"  # Or http://localhost:3000 for local development
+VITE_BASEURL="http://localhost:3000"
 VITE_CLERK_PUBLISHABLE_KEY="pk_test_..."
-VITE_CURRENCY="$"
+VITE_CURRENCY="₹"
 ```
 
 ---
 
-## 🚀 Quickstart & Local Installation
+## 🚀 Quickstart & Local Running
 
-### Prerequisites
-- Node.js `v18.x` or higher
-- MongoDB cluster or local instance
-
-### Step 1: Clone the repository
 ```bash
+# Clone repository
 git clone https://github.com/Nand24/Hypp.git
 cd Hypp
-```
 
-### Step 2: Install dependencies
-```bash
-# Install root dependencies
-npm install
-
-# Install client dependencies
+# Install dependencies
 cd client && npm install
-
-# Install server dependencies
 cd ../server && npm install
-```
 
-### Step 3: Run local development servers
-To start both the client and server concurrently from the root directory:
-```bash
-npm run dev
-```
-
-Or run them individually in separate terminals:
-
-```bash
-# Terminal 1: Backend Server
+# Run backend (Terminal 1)
 cd server
 npm run server
 
-# Terminal 2: Frontend Client
+# Run frontend (Terminal 2)
 cd client
 npm run dev
 ```
-
----
-
-## 🌐 Live Deployments
-
-- **Backend API**: Hosted on Render (`https://hypp.onrender.com`)
-- **Frontend App**: Deployed on Netlify with automated continuous deployment from GitHub `main` branch.
 
 ---
 
