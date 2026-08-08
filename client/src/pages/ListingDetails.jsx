@@ -1,5 +1,5 @@
 import { DollarSign, Users, LineChart, Eye, Calendar, MapPin, CheckCircle2, UserCircle, ChevronLeftIcon, ChevronRightIcon, ArrowLeftIcon, Loader2Icon, ShoppingBagIcon, ArrowUpRightFromSquareIcon, MessageSquareMoreIcon } from 'lucide-react';
-import { getProfileLink, platformIcons } from '../assets/assets';
+import { assets, getProfileLink, platformIcons } from '../assets/assets';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { useEffect, useState } from 'react';
@@ -215,15 +215,26 @@ export default function ListingDetails() {
                 <div className='bg-white min-w-full md:min-w-[370px] rounded-xl border border-gray-200 p-5 max-md:mb-10'>
                     <h4 className='font-semibold text-gray-800 mb-4'>Seller Information</h4>
                     <div className='flex items-center gap-3 mb-2'>
-                        <img src={listing.owner?.image} alt='seller' className='size-10 rounded-full' />
+                        <img
+                            src={listing.owner?.image || assets.user_profile}
+                            alt={listing.owner?.name || 'seller'}
+                            className='size-11 rounded-full object-cover border border-gray-200'
+                            onError={(e) => { e.target.onerror = null; e.target.src = assets.user_profile; }}
+                        />
                         <div>
-                            <p className='font-medium text-gray-800'>{listing.owner?.name}</p>
-                            <p className='text-sm text-gray-500'>{listing.owner?.email}</p>
+                            <p className='font-medium text-gray-800'>{listing.owner?.name || 'Verified Seller'}</p>
+                            <p className='text-sm text-gray-500'>{listing.owner?.email || 'Seller'}</p>
                         </div>
                     </div>
                     <div className='flex items-center justify-between text-sm text-gray-600 mb-4'>
                         <p>
-                            Member Since <span className='font-medium'> {new Date(listing.owner?.createdAt).toLocaleDateString()} </span>
+                            Member Since <span className='font-medium'>
+                                {listing.owner?.createdAt && !isNaN(new Date(listing.owner.createdAt))
+                                    ? new Date(listing.owner.createdAt).toLocaleDateString()
+                                    : listing.createdAt && !isNaN(new Date(listing.createdAt))
+                                    ? new Date(listing.createdAt).toLocaleDateString()
+                                    : 'Recently'}
+                            </span>
                         </p>
                     </div>
                     <button onClick={loadChatbox} className='w-full bg-indigo-600 text-white py-2 rounded-lg hover:bg-indigo-700 transition text-sm font-medium flex items-center justify-center gap-2'>
