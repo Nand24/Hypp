@@ -1,6 +1,6 @@
-import { createSlice } from "@reduxjs/toolkit";
-import { createAsyncThunk } from "@reduxjs/toolkit";
+import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import api from "../../configs/axios";
+import { dummyListings } from "../../assets/assets";
 
 // Get all public listings
 export const getAllPublicListing = createAsyncThunk("listing/getAllPublicListing", async () => {
@@ -9,7 +9,7 @@ export const getAllPublicListing = createAsyncThunk("listing/getAllPublicListing
         return data;
     } catch (error) {
         console.log(error);
-        return { listings: [] };
+        return { listings: dummyListings };
     }
 });
 
@@ -28,7 +28,7 @@ export const getAllUserListing = createAsyncThunk("listing/getAllUserListing", a
 const listingSlice = createSlice({
     name: "listing",
     initialState: {
-        listings: [],
+        listings: dummyListings,
         userListings: [],
         balance: {
             earned: 0,
@@ -38,12 +38,16 @@ const listingSlice = createSlice({
     },
     reducers: {
         setListings: (state, action) => {
-            state.listings = action.payload || [];
+            state.listings = (action.payload && action.payload.length > 0) ? action.payload : dummyListings;
         }
     },
     extraReducers: (builder) => {
         builder.addCase(getAllPublicListing.fulfilled, (state, action) => {
-            state.listings = action.payload?.listings || [];
+            if (action.payload?.listings && action.payload.listings.length > 0) {
+                state.listings = action.payload.listings;
+            } else {
+                state.listings = dummyListings;
+            }
         });
         builder.addCase(getAllUserListing.fulfilled, (state, action) => {
             state.userListings = action.payload?.listings || [];
