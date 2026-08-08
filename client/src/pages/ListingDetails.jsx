@@ -246,7 +246,7 @@ export default function ListingDetails() {
                         <MessageSquareMoreIcon className='size-4' /> Chat with Seller
                     </button>
 
-                    {listing.isCredentialChanged && (
+                    {listing.status === 'active' && (
                         <button onClick={purchaseAccount} className='w-full mt-2 bg-purple-600 text-white py-2.5 rounded-xl hover:bg-purple-700 transition text-sm font-medium flex items-center justify-center gap-2 cursor-pointer shadow-sm'>
                             <ShoppingBagIcon className='size-4' /> Purchase Account
                         </button>
