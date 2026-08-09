@@ -214,6 +214,7 @@ const ManageListing = () => {
                 <div className='mb-8'>
                     <h1 className='text-3xl font-bold text-gray-800'>{isEditing ? 'Edit Listing' : 'List Your Account'}</h1>
                     <p className='text-gray-600 mt-2'>{isEditing ? 'Update your existing account listing' : 'Create a mock listing to display your account info'}</p>
+                </div>
                 {/* SELLER IDENTITY VERIFICATION (KYC) */}
                 <div className={`mb-8 p-5 rounded-2xl border transition-all ${kycVerified ? 'bg-emerald-50/80 border-emerald-200 text-emerald-900' : 'bg-amber-50/80 border-amber-200 text-amber-900'}`}>
                     <div className='flex items-center justify-between gap-4'>
