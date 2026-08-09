@@ -1,7 +1,6 @@
 import Listing from "../models/Listing.js";
 import Chat from "../models/Chat.js";
 import Message from "../models/Message.js";
-import PlatformMessage from "../models/PlatformMessage.js";
 import User from "../models/User.js";
 
 // Controller for getting chat ( creating if not exist )
@@ -40,12 +39,11 @@ export const getChat = async (req, res) => {
 
         if (existingChat) {
             const messages = await Message.find({ chatId: existingChat.id }).sort({ createdAt: 1 }).lean();
-            const platformMessages = await PlatformMessage.find({ chatId: existingChat.id }).sort({ createdAt: 1 }).lean();
             const ownerUser = await User.findOne({ id: existingChat.ownerUserId }).lean();
             const chatUser = await User.findOne({ id: existingChat.chatUserId }).lean();
             const listingData = await Listing.findOne({ id: existingChat.listingId }).lean();
 
-            const fullChat = { ...existingChat, listing: listingData || null, ownerUser, chatUser, messages, platformMessages };
+            const fullChat = { ...existingChat, listing: listingData || null, ownerUser, chatUser, messages };
 
             if (existingChat.isLastMessageRead === false && messages && messages.length > 0) {
                 const lastMessage = messages[messages.length - 1];

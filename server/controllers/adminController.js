@@ -25,7 +25,7 @@ export const getDashboard = async (req, res) => {
 
         const activeListings = await Listing.countDocuments({ status: "active" });
 
-        const totalUser = await Listing.countDocuments({});
+        const totalUser = await User.countDocuments({});
 
         const recentListings = await Listing.find().sort({ createdAt: -1 }).limit(5).lean();
 

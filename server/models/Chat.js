@@ -9,7 +9,6 @@ const ChatSchema = new Schema(
         ownerUserId: { type: String, required: true },
         listingId: { type: String, required: true },
         messages: [{ type: Schema.Types.ObjectId, ref: "Message" }],
-        platformMessages: [{ type: Schema.Types.ObjectId, ref: "PlatformMessage" }],
         active: { type: Boolean, default: true },
         lastMessage: { type: String, default: "" },
         isLastMessageRead: { type: Boolean, default: true },

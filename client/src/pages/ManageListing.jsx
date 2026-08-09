@@ -278,9 +278,8 @@ const ManageListing = () => {
                             <InputField label='Monthly Views/Impressions' type='number' min={0} placeholder='100000' value={formData.monthly_views} onChange={(v) => handleInputChange('monthly_views', v)} />
                         </div>
 
-                        <div className='grid grid-cols-1 md:grid-cols-2 gap-6 mb-6'>
+                        <div className='mb-6'>
                             <InputField label='Primary Audience Country' value={formData.country} placeholder='United States' onChange={(v) => handleInputChange('country', v)} />
-                            <SelectField label='Primary Audience Age Range' options={ageRanges} value={formData.age_range} onChange={(v) => handleInputChange('age_range', v)} />
                         </div>
 
                         <div className='space-y-3'>

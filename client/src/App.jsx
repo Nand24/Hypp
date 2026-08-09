@@ -18,7 +18,6 @@ import AllListings from './pages/admin/AllListings';
 import CredentialChange from './pages/admin/CredentialChange';
 import CredentialVerify from './pages/admin/CredentialVerify';
 import Transactions from './pages/admin/Transactions';
-import Loading from './pages/Loading';
 import MyOrders from './pages/MyOrders';
 import Withdrawal from './pages/admin/Withdrawal';
 
@@ -52,7 +51,6 @@ const App = () => {
                 <Route path='/edit-listing/:id' element={<ManageListing />} />
                 <Route path='/messages' element={<Messages />} />
                 <Route path='/my-orders' element={<MyOrders />} />
-                <Route path='/loading/:nextUrl' element={<Loading />} />
                 <Route path='/admin' element={<Layout />}>
                     <Route index element={<Dashboard />} />
                     <Route path='verify-credentials' element={<CredentialVerify />} />

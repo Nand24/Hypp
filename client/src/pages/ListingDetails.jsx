@@ -84,7 +84,7 @@ export default function ListingDetails() {
                         toast.dismissAll();
                         if (verifyRes.data?.success) {
                             toast.success('Payment Successful!');
-                            navigate('/loading/my-orders');
+                            navigate('/my-orders');
                         } else {
                             toast.error('Payment verification failed');
                         }
@@ -275,10 +275,6 @@ export default function ListingDetails() {
                                 <p className='flex items-center font-medium text-slate-800 dark:text-slate-200'>
                                     <MapPin className='size-4 mr-1 text-slate-400' /> {listing.country}
                                 </p>
-                            </div>
-                            <div>
-                                <p className='text-slate-500 dark:text-slate-400'>Audience Age</p>
-                                <p className='font-medium text-slate-800 dark:text-slate-200'>{listing.age_range}</p>
                             </div>
                             <div>
                                 <p className='text-slate-500 dark:text-slate-400'>Platform Verified</p>
