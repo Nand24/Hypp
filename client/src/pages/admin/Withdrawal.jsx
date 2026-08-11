@@ -5,6 +5,7 @@ import toast from 'react-hot-toast';
 import { Loader2Icon } from 'lucide-react';
 import AdminTitle from '../../components/admin/AdminTitle';
 import WithdrawalDetail from '../../components/admin/WithdrawalDetail';
+import { assets } from '../../assets/assets';
 
 const Withdrawal = () => {
     const { getToken } = useAuth();
@@ -67,7 +68,7 @@ const Withdrawal = () => {
                                 <tr key={req.id} className='border-t border-gray-200 hover:bg-indigo-50/50'>
                                     <td className='pl-4 py-3'>{index + 1}.</td>
                                     <td className='px-4 py-3 flex items-center gap-2'>
-                                        <img src={req.user?.image} alt={req.user?.name} className='w-8 h-8 rounded-full' />
+                                        <img src={req.user?.image || assets.user_profile} alt={req.user?.name || 'User'} className='w-8 h-8 rounded-full object-cover' onError={(e) => { e.target.onerror = null; e.target.src = assets.user_profile; }} />
                                         {req.user?.name}
                                     </td>
                                     <td className='px-4 py-3'>{req.user?.email}</td>

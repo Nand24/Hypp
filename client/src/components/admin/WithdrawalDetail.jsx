@@ -2,6 +2,7 @@ import { useAuth } from '@clerk/clerk-react';
 import toast from 'react-hot-toast';
 import api from '../../configs/axios';
 import { XIcon, CopyIcon } from 'lucide-react';
+import { assets } from '../../assets/assets';
 
 const WithdrawalDetail = ({ data, onClose }) => {
     const { getToken } = useAuth();
@@ -81,7 +82,7 @@ const WithdrawalDetail = ({ data, onClose }) => {
                         <h4 className='font-semibold'>User Summary</h4>
                         <div className='mt-2 text-sm text-gray-600'>
                             <div className='flex items-center gap-3'>
-                                <img src={data.user?.image} alt={data.user?.name} className='w-10 h-10 rounded-full object-cover border' />
+                                <img src={data.user?.image || assets.user_profile} alt={data.user?.name || 'User'} className='w-10 h-10 rounded-full object-cover border' onError={(e) => { e.target.onerror = null; e.target.src = assets.user_profile; }} />
                                 <div className='min-w-0'>
                                     <p className='font-medium truncate'>{data.user?.name || '—'}</p>
                                     <p className='truncate text-xs text-gray-500'>{data.user?.email || '—'}</p>

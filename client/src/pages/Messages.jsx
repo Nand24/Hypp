@@ -6,6 +6,7 @@ import { useDispatch } from "react-redux";
 import api from "../configs/axios";
 import { useAuth, useUser } from "@clerk/clerk-react";
 import { toast } from "react-hot-toast";
+import { assets } from "../assets/assets";
 
 export default function Messages() {
     const dispatch = useDispatch();
@@ -106,7 +107,12 @@ export default function Messages() {
                                 <button key={chat.id} onClick={() => handleOpenChat(chat)} className="w-full p-4 hover:bg-gray-50 transition-colors text-left">
                                     <div className="flex items-start space-x-4">
                                         <div className="flex-shrink-0">
-                                            <img src={chatUser?.image || "/default-avatar.png"} alt={chat?.chatUser?.name} className="w-12 h-12 rounded-lg object-cover" />
+                                            <img
+                                                src={chatUser?.image || assets.user_profile}
+                                                alt={chatUser?.name || "User"}
+                                                className="w-12 h-12 rounded-lg object-cover border border-gray-200"
+                                                onError={(e) => { e.target.onerror = null; e.target.src = assets.user_profile; }}
+                                            />
                                         </div>
 
                                         <div className="flex-1 min-w-0">

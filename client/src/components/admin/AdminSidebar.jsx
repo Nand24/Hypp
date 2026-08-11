@@ -1,6 +1,7 @@
 import { NavLink } from 'react-router-dom'
 import { useUser } from "@clerk/clerk-react"
 import { BanknoteIcon, CheckIcon, LayoutDashboardIcon, ListIcon, Settings2Icon, WalletIcon } from 'lucide-react';
+import { assets } from '../../assets/assets';
 
 const AdminSidebar = () => {
 
@@ -17,7 +18,7 @@ const AdminSidebar = () => {
 
     return (
         <div className='h-[calc(100vh-64px)] md:flex flex-col items-center pt-8 max-w-13 md:max-w-60 w-full border-r border-gray-200 text-sm'>
-            <img className='size-9 md:size-12 rounded-full mx-auto' src={user.imageUrl} alt="sidebar" />
+            <img className='size-9 md:size-12 rounded-full mx-auto object-cover' src={user?.imageUrl || assets.user_profile} alt="sidebar" onError={(e) => { e.target.onerror = null; e.target.src = assets.user_profile; }} />
             <p className='mt-2 text-base max-md:hidden'>{user.firstName} {user.lastName}</p>
             <div className='w-full'>
                 {adminNavlinks.map((link, index) => (

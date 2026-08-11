@@ -1,5 +1,6 @@
 import { XIcon, CheckCircleIcon, BadgeInfoIcon, GlobeIcon, UserIcon } from "lucide-react";
 import { useEffect } from "react";
+import { assets } from "../../assets/assets";
 
 const ListingDetailsModal = ({ listing, onClose }) => {
     
@@ -91,7 +92,7 @@ const ListingDetailsModal = ({ listing, onClose }) => {
                                 <UserIcon className="w-4 h-4 text-gray-500" /> Owner
                             </h4>
                             <div className="flex items-center gap-3">
-                                <img src={listing.owner.image} alt={listing.owner.name} className="size-8 rounded-full object-cover border border-gray-200" />
+                                <img src={listing.owner.image || assets.user_profile} alt={listing.owner.name || 'Owner'} className="size-8 rounded-full object-cover border border-gray-200" onError={(e) => { e.target.onerror = null; e.target.src = assets.user_profile; }} />
                                 <div>
                                     <p className="font-medium">{listing.owner.name}</p>
                                     <p className="text-sm text-gray-500">{listing.owner.email}</p>
@@ -107,7 +108,7 @@ const ListingDetailsModal = ({ listing, onClose }) => {
                                 <UserIcon className="w-4 h-4 text-gray-500" /> Customer
                             </h4>
                             <div className="flex items-center gap-3">
-                                <img src={listing.customer.image} alt={listing.customer.name} className="size-8 rounded-full object-cover border border-gray-200" />
+                                <img src={listing.customer.image || assets.user_profile} alt={listing.customer.name || 'Customer'} className="size-8 rounded-full object-cover border border-gray-200" onError={(e) => { e.target.onerror = null; e.target.src = assets.user_profile; }} />
                                 <div>
                                     <p className="font-medium">{listing.customer.name}</p>
                                     <p className="text-sm text-gray-500">{listing.customer.email}</p>
