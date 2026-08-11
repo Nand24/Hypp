@@ -204,6 +204,21 @@ const MyListings = () => {
                                 </div>
 
                                 <div className='space-y-4'>
+                                    {listing.status === 'sold' && !listing.isCredentialSubmitted && (
+                                        <div className='bg-amber-50 border border-amber-200 rounded-lg p-3 text-xs text-amber-900 flex flex-col gap-2'>
+                                            <div className='flex items-center gap-1.5 font-semibold text-amber-800'>
+                                                <LockIcon className='size-3.5 text-amber-600' /> Buyer Paid! Submit Credentials (48h Deadline)
+                                            </div>
+                                            <p className='text-amber-700 leading-tight'>Money is locked in Escrow. Add credentials now so the buyer can inspect and release your payout.</p>
+                                            <button
+                                                onClick={() => setShowCredentialSubmission(listing)}
+                                                className='bg-amber-600 hover:bg-amber-700 text-white font-medium py-1 px-2.5 rounded shadow-xs text-xs self-start transition cursor-pointer'
+                                            >
+                                                Submit Credentials Now
+                                            </button>
+                                        </div>
+                                    )}
+
                                     <div className='grid grid-cols-2 gap-2 text-sm'>
                                         <div className='flex items-center space-x-2'>
                                             <Users className='size-4 text-gray-400' />

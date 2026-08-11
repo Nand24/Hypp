@@ -7,6 +7,7 @@ import { setChat } from '../app/features/chatSlice';
 import { useAuth, useClerk, useUser } from '@clerk/clerk-react';
 import { toast } from 'react-hot-toast';
 import api from '../configs/axios';
+import TransferGuideChecklist from '../components/TransferGuideChecklist';
 
 export default function ListingDetails() {
     const { user, isLoaded } = useUser();
@@ -258,6 +259,11 @@ export default function ListingDetails() {
                                 </p>
                             </div>
                         </div>
+                    </div>
+
+                    {/* Escrow Transfer Protocol Checklist */}
+                    <div className='mb-5'>
+                        <TransferGuideChecklist interactive={false} initialCompleted={[1]} />
                     </div>
 
                     {/* Additional Details */}

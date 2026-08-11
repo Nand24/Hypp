@@ -5,6 +5,7 @@ import api from '../configs/axios';
 import { platformIcons } from '../assets/assets';
 import { CheckCircle2, Loader2Icon, Copy, ChevronDown, ChevronUp, ShieldCheck, ShieldAlert, AlertCircle } from 'lucide-react';
 import { format } from 'date-fns';
+import TransferGuideChecklist from '../components/TransferGuideChecklist';
 
 const MyOrders = () => {
     const { user, isLoaded } = useUser();
@@ -161,20 +162,20 @@ const MyOrders = () => {
                             </div>                             {isExpanded && (
                                 <div className='mt-4 pt-4 border-t border-gray-100 space-y-4'>
                                     {/* Escrow Status & Action Banner */}
-                                    <div className={`p-3.5 rounded-xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs ${order.escrowStatus === 'released' ? 'bg-emerald-50 border-emerald-200 text-emerald-800' : order.escrowStatus === 'disputed' ? 'bg-red-50 border-red-200 text-red-800' : 'bg-indigo-50 border-indigo-200 text-indigo-900'}`}>
+                                    <div className={`p-3.5 rounded-xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs ${order.escrowStatus === 'released' ? 'bg-emerald-50 border-emerald-200 text-emerald-800' : order.escrowStatus === 'disputed' ? 'bg-red-50 border-red-200 text-red-800' : order.escrowStatus === 'awaiting_credentials' ? 'bg-amber-50 border-amber-200 text-amber-900' : 'bg-indigo-50 border-indigo-200 text-indigo-900'}`}>
                                         <div className='flex items-center gap-2'>
-                                            {order.escrowStatus === 'released' ? <CheckCircle2 className='size-4 text-emerald-600' /> : order.escrowStatus === 'disputed' ? <AlertCircle className='size-4 text-red-600' /> : <ShieldCheck className='size-4 text-indigo-600' />}
+                                            {order.escrowStatus === 'released' ? <CheckCircle2 className='size-4 text-emerald-600' /> : order.escrowStatus === 'disputed' ? <AlertCircle className='size-4 text-red-600' /> : order.escrowStatus === 'awaiting_credentials' ? <ShieldAlert className='size-4 text-amber-600' /> : <ShieldCheck className='size-4 text-indigo-600' />}
                                             <div>
                                                 <span className='font-bold uppercase tracking-wide'>
-                                                    {order.escrowStatus === 'released' ? 'Escrow Protection Completed' : order.escrowStatus === 'disputed' ? 'Escrow Dispute Active' : '🛡️ 48h Inspection Window Active'}
+                                                    {order.escrowStatus === 'released' ? 'Escrow Protection Completed' : order.escrowStatus === 'disputed' ? 'Escrow Dispute Active' : order.escrowStatus === 'awaiting_credentials' ? '🛡️ Escrow Locked — Awaiting Seller Credentials (48h Deadline)' : '🛡️ 48h Inspection Window Active'}
                                                 </span>
                                                 <p className='text-xs opacity-80 mt-0.5'>
-                                                    {order.escrowStatus === 'released' ? 'Funds have been released to the seller.' : order.escrowStatus === 'disputed' ? `Dispute Reason: ${order.disputeReason || 'Under Review'}` : 'You can inspect the account. Approve transfer to release funds immediately or flag a dispute.'}
+                                                    {order.escrowStatus === 'released' ? 'Funds have been released to the seller.' : order.escrowStatus === 'disputed' ? `Dispute Reason: ${order.disputeReason || 'Under Review'}` : order.escrowStatus === 'awaiting_credentials' ? 'Your payment is safely locked in Escrow. The seller has been notified to submit credentials within 48 hours.' : 'You can inspect the account. Approve transfer to release funds immediately or flag a dispute.'}
                                                 </p>
                                             </div>
                                         </div>
 
-                                        {order.escrowStatus !== 'released' && order.escrowStatus !== 'disputed' && (
+                                        {order.escrowStatus !== 'released' && order.escrowStatus !== 'disputed' && order.escrowStatus !== 'awaiting_credentials' && (
                                             <div className='flex items-center gap-2 shrink-0'>
                                                 <button
                                                     onClick={(e) => { e.stopPropagation(); handleReleaseEscrow(order.id); }}
@@ -193,33 +194,44 @@ const MyOrders = () => {
                                     </div>
 
                                     {credential && ((credential.updatedCredential && credential.updatedCredential.length > 0) || (credential.originalCredential && credential.originalCredential.length > 0)) ? (
-                                        <div className='space-y-2'>
-                                            {(credential.updatedCredential && credential.updatedCredential.length > 0 ? credential.updatedCredential : credential.originalCredential).map((cred, idx) => (
-                                                <div key={cred.name || idx} className='flex items-center justify-between gap-3 bg-gray-50 rounded-md p-2'>
-                                                    <div>
-                                                        <p className='text-sm font-medium text-gray-800'>{cred.name}</p>
-                                                        <p className='text-xs text-gray-500'>{cred.type}</p>
-                                                    </div>
+                                        <div className='space-y-4'>
+                                            <div className='space-y-2'>
+                                                {(credential.updatedCredential && credential.updatedCredential.length > 0 ? credential.updatedCredential : credential.originalCredential).map((cred, idx) => (
+                                                    <div key={cred.name || idx} className='flex items-center justify-between gap-3 bg-gray-50 rounded-md p-2'>
+                                                        <div>
+                                                            <p className='text-sm font-medium text-gray-800'>{cred.name}</p>
+                                                            <p className='text-xs text-gray-500'>{cred.type}</p>
+                                                        </div>
 
-                                                    <div className='flex items-center gap-2'>
-                                                        <code className='text-sm font-mono'>{mask(cred.value, cred.type)}</code>
-                                                        <button
-                                                            onClick={(e) => {
-                                                                e.stopPropagation();
-                                                                copy(cred.value);
-                                                            }}
-                                                            className='px-2 py-1 text-xs bg-white border border-gray-200 rounded hover:shadow'
-                                                            title='Copy credential'
-                                                        >
-                                                            <Copy className='size-4' />
-                                                        </button>
+                                                        <div className='flex items-center gap-2'>
+                                                            <code className='text-sm font-mono'>{mask(cred.value, cred.type)}</code>
+                                                            <button
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    copy(cred.value);
+                                                                }}
+                                                                className='px-2 py-1 text-xs bg-white border border-gray-200 rounded hover:shadow'
+                                                                title='Copy credential'
+                                                            >
+                                                                <Copy className='size-4' />
+                                                            </button>
+                                                        </div>
                                                     </div>
-                                                </div>
-                                            ))}
+                                                ))}
+                                            </div>
+
+                                            {/* Account Transfer Process Guide */}
+                                            <TransferGuideChecklist interactive={true} initialCompleted={[1, 2]} />
                                         </div>
                                     ) : (
-                                        <div className='p-3 bg-amber-50 border border-amber-200 rounded-md text-amber-800 text-sm'>
-                                            Credentials are being processed by platform escrow. Credentials will be sent to your email!
+                                        <div className='space-y-4'>
+                                            <div className='p-3 bg-amber-50 border border-amber-200 rounded-md text-amber-800 text-sm flex items-center justify-between'>
+                                                <div>
+                                                    <p className='font-semibold'>Escrow Protection Active</p>
+                                                    <p className='text-xs mt-0.5'>Your money is held safely in escrow. Once the seller uploads login credentials, they will appear here and be emailed to you!</p>
+                                                </div>
+                                            </div>
+                                            <TransferGuideChecklist interactive={false} initialCompleted={[1]} />
                                         </div>
                                     )}
                                 </div>

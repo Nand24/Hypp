@@ -18,6 +18,7 @@ export default function Footer() {
                             <h2 className="font-semibold mb-5 text-slate-800 dark:text-slate-200">Company</h2>
                             <a className="hover:text-slate-900 dark:hover:text-slate-100 transition" href="#">About us</a>
                             <a className="hover:text-slate-900 dark:hover:text-slate-100 transition" href="#">Careers<span className="text-xs text-white bg-indigo-600 rounded-md ml-2 px-2 py-0.5 font-medium">We’re hiring!</span></a>
+                            <a className="hover:text-slate-900 dark:hover:text-slate-100 transition" href="/admin">Admin Portal</a>
                             <a className="hover:text-slate-900 dark:hover:text-slate-100 transition" href="#">Contact us</a>
                             <a className="hover:text-slate-900 dark:hover:text-slate-100 transition" href="#">Privacy policy</a>
                         </div>

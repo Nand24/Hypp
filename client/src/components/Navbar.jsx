@@ -1,6 +1,6 @@
 import { assets } from '../assets/assets';
 import { UserButton, useUser, useClerk } from '@clerk/clerk-react';
-import { BoxIcon, GripIcon, ListIcon, MenuIcon, MessageCircleMoreIcon, XIcon, Sun, Moon } from 'lucide-react';
+import { BoxIcon, GripIcon, ListIcon, MenuIcon, MessageCircleMoreIcon, XIcon, Sun, Moon, ShieldCheck } from 'lucide-react';
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
@@ -23,6 +23,9 @@ const Navbar = () => {
                     <Link onClick={() => scrollTo(0, 0)} to='/marketplace' className='hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors'> Marketplace </Link>
                     {user ? <Link onClick={() => scrollTo(0, 0)} to='/messages' className='hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors'> Messages </Link> : <Link onClick={openSignIn} to='#' className='hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors'> Messages </Link>}
                     {user ? <Link onClick={() => scrollTo(0, 0)} to='/my-listings' className='hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors'> My Listings </Link> : <Link onClick={openSignIn} to='#' className='hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors'> My Listings </Link>}
+                    <Link onClick={() => scrollTo(0, 0)} to='/admin' className='flex items-center gap-1 text-indigo-600 dark:text-indigo-400 font-semibold hover:underline transition-colors'>
+                        <ShieldCheck size={16} /> Admin Portal
+                    </Link>
                 </div>
 
                 <div className='flex items-center gap-3 md:gap-4'>
@@ -45,6 +48,9 @@ const Navbar = () => {
                     ) : (
                         <UserButton>
                             <UserButton.MenuItems>
+                                <UserButton.Action label='Admin Dashboard' labelIcon={<ShieldCheck size={16} />} onClick={() => navigate('/admin')} />
+                            </UserButton.MenuItems>
+                            <UserButton.MenuItems>
                                 <UserButton.Action label='Marketplace' labelIcon={<GripIcon size={16} />} onClick={() => navigate('/marketplace')} />
                             </UserButton.MenuItems>
                             <UserButton.MenuItems>
@@ -66,6 +72,7 @@ const Navbar = () => {
                 <div className='flex flex-col items-center justify-center h-full text-xl font-semibold gap-6 p-6 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 w-4/5 ml-auto shadow-2xl relative border-l border-slate-200 dark:border-slate-800'>
                     <Link to='/' onClick={() => setMenuOpen(false)} className='hover:text-indigo-600 dark:hover:text-indigo-400'> Home </Link>
                     <Link to='/marketplace' onClick={() => setMenuOpen(false)} className='hover:text-indigo-600 dark:hover:text-indigo-400'> Marketplace </Link>
+                    <Link to='/admin' onClick={() => setMenuOpen(false)} className='text-indigo-600 dark:text-indigo-400 flex items-center gap-2'> <ShieldCheck size={20} /> Admin Portal </Link>
                     <button onClick={() => { setMenuOpen(false); openSignIn(); }}> Messages </button>
                     <button onClick={() => { setMenuOpen(false); openSignIn(); }}> My Listings </button>
                     {!user && (

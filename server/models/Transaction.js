@@ -10,7 +10,12 @@ const TransactionSchema = new Schema(
         userId: { type: String, required: true },
         amount: { type: Number, required: true },
         isPaid: { type: Boolean, default: false },
-        escrowStatus: { type: String, enum: ["held", "released", "disputed"], default: "held" },
+        escrowStatus: {
+            type: String,
+            enum: ["awaiting_credentials", "held", "released", "disputed", "refunded"],
+            default: "held"
+        },
+        sellerDeadline: { type: Date },
         inspectionWindowExpiresAt: { type: Date },
         disputeReason: { type: String, default: "" },
     },

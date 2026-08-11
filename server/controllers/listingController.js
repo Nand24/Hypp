@@ -388,10 +388,9 @@ export const addCredential = async (req, res) => {
 
         const { listingId, credential } = req.body;
 
-        if (credential.length === 0 || !listingId) {
-            return res.status(400).json({ message: "Missing Feilds" });
+        if (!credential || credential.length === 0 || !listingId) {
+            return res.status(400).json({ message: "Missing required fields" });
         }
-
 
         const listing = await Listing.findOne({ id: listingId, ownerId: userId });
 
@@ -399,11 +398,44 @@ export const addCredential = async (req, res) => {
             return res.status(404).json({ message: "Listing not found or you are not the owner" });
         }
 
+        let existingCred = await Credential.findOne({ listingId });
+        if (existingCred) {
+            existingCred.originalCredential = credential;
+            existingCred.updatedCredential = credential;
+            await existingCred.save();
+        } else {
+            await Credential.create({ listingId, originalCredential: credential, updatedCredential: credential });
+        }
 
-        await Credential.create({ listingId, originalCredential: credential });
         await Listing.findOneAndUpdate({ id: listingId }, { isCredentialSubmitted: true });
 
-        return res.json({ message: "Credential added successfully" });
+        // Check if there is a pending transaction waiting for credentials
+        const pendingTransaction = await Transaction.findOne({ listingId, isPaid: true, escrowStatus: "awaiting_credentials" });
+        if (pendingTransaction) {
+            const expiresAt = new Date(Date.now() + 48 * 60 * 60 * 1000);
+            pendingTransaction.escrowStatus = "held";
+            pendingTransaction.inspectionWindowExpiresAt = expiresAt;
+            await pendingTransaction.save();
+
+            // Send notification email to buyer
+            try {
+                const customer = await User.findOne({ id: pendingTransaction.userId }).lean();
+                if (customer?.email) {
+                    const credHtml = credential.map((c) => `<p><b>${c.name}:</b> <code>${c.value}</code></p>`).join('');
+                    await sendEmail({
+                        to: customer.email,
+                        subject: `Credentials Available for @${listing.username}`,
+                        html: `<h2>The seller has submitted credentials for @${listing.username}!</h2>
+                               <p>Here are your account credentials:</p>${credHtml}
+                               <p>Your 48-hour inspection window is now active. Log in and verify the account in your orders dashboard.</p>`
+                    });
+                }
+            } catch (emailErr) {
+                console.error("Error sending credential delivery email to buyer:", emailErr.message);
+            }
+        }
+
+        return res.json({ message: "Credentials submitted successfully! Escrow updated." });
     } catch (error) {
         console.log(error);
         res.status(500).json({ message: error.code || error.message });
@@ -477,51 +509,77 @@ export const verifyRazorpayPayment = async (req, res) => {
             .digest("hex");
 
         if (expectedSignature === razorpay_signature) {
+            const currentTx = await Transaction.findOne({ id: transactionId });
+            const listingInfo = await Listing.findOne({ id: currentTx?.listingId });
+            let credential = await Credential.findOne({ listingId: listingInfo?.id });
+
+            const hasPreSubmittedCreds = credential && credential.originalCredential && credential.originalCredential.length > 0;
+
             const expiresAt = new Date(Date.now() + 48 * 60 * 60 * 1000);
+            const sellerDeadline = new Date(Date.now() + 48 * 60 * 60 * 1000);
+
             const transaction = await Transaction.findOneAndUpdate(
                 { id: transactionId },
-                { isPaid: true, escrowStatus: "held", inspectionWindowExpiresAt: expiresAt },
+                {
+                    isPaid: true,
+                    escrowStatus: hasPreSubmittedCreds ? "held" : "awaiting_credentials",
+                    sellerDeadline: hasPreSubmittedCreds ? null : sellerDeadline,
+                    inspectionWindowExpiresAt: hasPreSubmittedCreds ? expiresAt : null
+                },
                 { new: true }
             ).lean();
 
             if (transaction) {
-                let credential = await Credential.findOne({ listingId: transaction.listingId });
-                if (!credential) {
-                    const tempPass = `Hypp-${Math.random().toString(36).substring(2, 8)}!`;
-                    credential = await Credential.create({
-                        listingId: transaction.listingId,
-                        originalCredential: [
-                            { name: 'Username/Handle', value: 'seller_account', type: 'text' },
-                            { name: 'Account Password', value: tempPass, type: 'password' }
-                        ],
-                        updatedCredential: [
-                            { name: 'Username/Handle', value: 'seller_account', type: 'text' },
-                            { name: 'Secured Escrow Password', value: tempPass, type: 'password' },
-                            { name: 'Support Mail', value: 'escrow@hypp.com', type: 'email' }
-                        ]
-                    });
-                } else if (!credential.updatedCredential || credential.updatedCredential.length === 0) {
-                    credential.updatedCredential = credential.originalCredential;
-                    await credential.save();
-                }
-
-                await inngest.send({ name: "app/purchase", data: { transaction } });
-                await Listing.findOneAndUpdate({ id: transaction.listingId }, { status: "sold", isCredentialSubmitted: true, isCredentialVerified: true, isCredentialChanged: true });
-
-                try {
-                    const customer = await User.findOne({ id: transaction.userId }).lean();
-                    const listingInfo = await Listing.findOne({ id: transaction.listingId }).lean();
-                    if (customer?.email) {
-                        const creds = credential.updatedCredential?.length > 0 ? credential.updatedCredential : credential.originalCredential;
-                        const credHtml = creds?.map((c) => `<p><b>${c.name}:</b> <code>${c.value}</code></p>`).join('') || '';
-                        await sendEmail({
-                            to: customer.email,
-                            subject: `Your Credentials for @${listingInfo?.username || 'account'}`,
-                            html: `<h2>Thank you for purchasing @${listingInfo?.username || 'account'} on ${listingInfo?.platform || 'Hypp'}!</h2><p>Here are your account credentials:</p>${credHtml}`
-                        });
+                await Listing.findOneAndUpdate(
+                    { id: transaction.listingId },
+                    {
+                        status: "sold",
+                        isCredentialSubmitted: hasPreSubmittedCreds,
+                        isCredentialVerified: hasPreSubmittedCreds,
+                        isCredentialChanged: hasPreSubmittedCreds
                     }
-                } catch (emailErr) {
-                    console.error("Direct purchase email send error:", emailErr.message);
+                );
+
+                const customer = await User.findOne({ id: transaction.userId }).lean();
+                const seller = await User.findOne({ id: transaction.ownerId }).lean();
+
+                if (hasPreSubmittedCreds) {
+                    await inngest.send({ name: "app/purchase", data: { transaction } });
+                    try {
+                        if (customer?.email) {
+                            const creds = credential.updatedCredential?.length > 0 ? credential.updatedCredential : credential.originalCredential;
+                            const credHtml = creds?.map((c) => `<p><b>${c.name}:</b> <code>${c.value}</code></p>`).join('') || '';
+                            await sendEmail({
+                                to: customer.email,
+                                subject: `Your Credentials for @${listingInfo?.username || 'account'}`,
+                                html: `<h2>Thank you for purchasing @${listingInfo?.username || 'account'} on ${listingInfo?.platform || 'Hypp'}!</h2><p>Here are your account credentials:</p>${credHtml}`
+                            });
+                        }
+                    } catch (emailErr) {
+                        console.error("Direct purchase email send error:", emailErr.message);
+                    }
+                } else {
+                    try {
+                        if (seller?.email) {
+                            await sendEmail({
+                                to: seller.email,
+                                subject: `⚡ ACTION REQUIRED: Buyer Paid for @${listingInfo?.username}!`,
+                                html: `<h2>Congratulations! Your listing @${listingInfo?.username} has been purchased.</h2>
+                                       <p>The buyer's payment of ₹${transaction.amount} is currently secured in Hypp Escrow.</p>
+                                       <p><b>Please log in to your Hypp dashboard and submit the account credentials within 48 hours to initiate release of your funds.</b></p>`
+                            });
+                        }
+                        if (customer?.email) {
+                            await sendEmail({
+                                to: customer.email,
+                                subject: `Payment Received into Escrow for @${listingInfo?.username}`,
+                                html: `<h2>Your payment of ₹${transaction.amount} is locked safely in Hypp Escrow.</h2>
+                                       <p>The seller has been notified to submit credentials for @${listingInfo?.username} within 48 hours. You will receive an email as soon as credentials are submitted!</p>`
+                            });
+                        }
+                    } catch (emailErr) {
+                        console.error("Escrow notification email error:", emailErr.message);
+                    }
                 }
             }
 
