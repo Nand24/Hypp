@@ -3,6 +3,7 @@ import Features from "../components/Features";
 import Footer from "../components/Footer";
 import Hero from "../components/Hero";
 import LatestListings from "../components/LatestListings";
+import TransferProcessSection from "../components/TransferProcessSection";
 
 const Home = () => {
     return (
@@ -10,6 +11,7 @@ const Home = () => {
             <Hero />
             <LatestListings />
             <Features />
+            <TransferProcessSection />
             <CTA />
             <Footer />
         </div>
