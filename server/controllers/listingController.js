@@ -3,6 +3,7 @@ import imagekit from "../configs/imagekit.js";
 import Razorpay from "razorpay";
 import { inngest } from "../inngest/index.js";
 import sendEmail from "../configs/nodemailer.js";
+import { clerkClient } from "@clerk/express";
 
 import Listing from "../models/Listing.js";
 import User from "../models/User.js";
@@ -417,22 +418,30 @@ export const addCredential = async (req, res) => {
             pendingTransaction.inspectionWindowExpiresAt = expiresAt;
             await pendingTransaction.save();
 
-            // Send notification email to buyer
-            try {
-                const customer = await User.findOne({ id: pendingTransaction.userId }).lean();
-                if (customer?.email) {
-                    const credHtml = credential.map((c) => `<p><b>${c.name}:</b> <code>${c.value}</code></p>`).join('');
-                    await sendEmail({
-                        to: customer.email,
-                        subject: `Credentials Available for @${listing.username}`,
-                        html: `<h2>The seller has submitted credentials for @${listing.username}!</h2>
-                               <p>Here are your account credentials:</p>${credHtml}
-                               <p>Your 48-hour inspection window is now active. Log in and verify the account in your orders dashboard.</p>`
-                    });
+            // Send notification email to buyer asynchronously
+            (async () => {
+                try {
+                    let customerEmail = (await User.findOne({ id: pendingTransaction.userId }).lean())?.email;
+                    if (!customerEmail && pendingTransaction.userId) {
+                        try {
+                            const cUser = await clerkClient.users.getUser(pendingTransaction.userId);
+                            customerEmail = cUser?.emailAddresses?.[0]?.emailAddress;
+                        } catch (e) {}
+                    }
+                    if (customerEmail) {
+                        const credHtml = credential.map((c) => `<p><b>${c.name}:</b> <code>${c.value}</code></p>`).join('');
+                        await sendEmail({
+                            to: customerEmail,
+                            subject: `Credentials Available for @${listing.username}`,
+                            html: `<h2>The seller has submitted credentials for @${listing.username}!</h2>
+                                   <p>Here are your account credentials:</p>${credHtml}
+                                   <p>Your 48-hour inspection window is now active. Log in and verify the account in your orders dashboard.</p>`
+                        });
+                    }
+                } catch (emailErr) {
+                    console.error("Error sending credential delivery email to buyer:", emailErr.message);
                 }
-            } catch (emailErr) {
-                console.error("Error sending credential delivery email to buyer:", emailErr.message);
-            }
+            })();
         }
 
         return res.json({ message: "Credentials submitted successfully! Escrow updated." });
@@ -540,47 +549,59 @@ export const verifyRazorpayPayment = async (req, res) => {
                     }
                 );
 
-                const customer = await User.findOne({ id: transaction.userId }).lean();
-                const seller = await User.findOne({ id: transaction.ownerId }).lean();
+                // Asynchronously dispatch email notifications in background to avoid blocking API response
+                (async () => {
+                    try {
+                        let customerEmail = (await User.findOne({ id: transaction.userId }).lean())?.email;
+                        let sellerEmail = (await User.findOne({ id: transaction.ownerId }).lean())?.email;
 
-                if (hasPreSubmittedCreds) {
-                    await inngest.send({ name: "app/purchase", data: { transaction } });
-                    try {
-                        if (customer?.email) {
-                            const creds = credential.updatedCredential?.length > 0 ? credential.updatedCredential : credential.originalCredential;
-                            const credHtml = creds?.map((c) => `<p><b>${c.name}:</b> <code>${c.value}</code></p>`).join('') || '';
-                            await sendEmail({
-                                to: customer.email,
-                                subject: `Your Credentials for @${listingInfo?.username || 'account'}`,
-                                html: `<h2>Thank you for purchasing @${listingInfo?.username || 'account'} on ${listingInfo?.platform || 'Hypp'}!</h2><p>Here are your account credentials:</p>${credHtml}`
-                            });
+                        if (!customerEmail && transaction.userId) {
+                            try {
+                                const cUser = await clerkClient.users.getUser(transaction.userId);
+                                customerEmail = cUser?.emailAddresses?.[0]?.emailAddress;
+                            } catch (e) {}
                         }
-                    } catch (emailErr) {
-                        console.error("Direct purchase email send error:", emailErr.message);
+                        if (!sellerEmail && transaction.ownerId) {
+                            try {
+                                const sUser = await clerkClient.users.getUser(transaction.ownerId);
+                                sellerEmail = sUser?.emailAddresses?.[0]?.emailAddress;
+                            } catch (e) {}
+                        }
+
+                        if (hasPreSubmittedCreds) {
+                            await inngest.send({ name: "app/purchase", data: { transaction } }).catch(() => {});
+                            if (customerEmail) {
+                                const creds = credential.updatedCredential?.length > 0 ? credential.updatedCredential : credential.originalCredential;
+                                const credHtml = creds?.map((c) => `<p><b>${c.name}:</b> <code>${c.value}</code></p>`).join('') || '';
+                                await sendEmail({
+                                    to: customerEmail,
+                                    subject: `Your Credentials for @${listingInfo?.username || 'account'}`,
+                                    html: `<h2>Thank you for purchasing @${listingInfo?.username || 'account'} on ${listingInfo?.platform || 'Hypp'}!</h2><p>Here are your account credentials:</p>${credHtml}`
+                                });
+                            }
+                        } else {
+                            if (sellerEmail) {
+                                await sendEmail({
+                                    to: sellerEmail,
+                                    subject: `⚡ ACTION REQUIRED: Buyer Paid for @${listingInfo?.username}!`,
+                                    html: `<h2>Congratulations! Your listing @${listingInfo?.username} has been purchased.</h2>
+                                           <p>The buyer's payment of ₹${transaction.amount} is currently secured in Hypp Escrow.</p>
+                                           <p><b>Please log in to your Hypp dashboard and submit the account credentials within 48 hours to initiate release of your funds.</b></p>`
+                                });
+                            }
+                            if (customerEmail) {
+                                await sendEmail({
+                                    to: customerEmail,
+                                    subject: `Payment Received into Escrow for @${listingInfo?.username}`,
+                                    html: `<h2>Your payment of ₹${transaction.amount} is locked safely in Hypp Escrow.</h2>
+                                           <p>The seller has been notified to submit credentials for @${listingInfo?.username} within 48 hours. You will receive an email as soon as credentials are submitted!</p>`
+                                });
+                            }
+                        }
+                    } catch (bgEmailErr) {
+                        console.error("[verifyRazorpayPayment] Async email error:", bgEmailErr.message);
                     }
-                } else {
-                    try {
-                        if (seller?.email) {
-                            await sendEmail({
-                                to: seller.email,
-                                subject: `⚡ ACTION REQUIRED: Buyer Paid for @${listingInfo?.username}!`,
-                                html: `<h2>Congratulations! Your listing @${listingInfo?.username} has been purchased.</h2>
-                                       <p>The buyer's payment of ₹${transaction.amount} is currently secured in Hypp Escrow.</p>
-                                       <p><b>Please log in to your Hypp dashboard and submit the account credentials within 48 hours to initiate release of your funds.</b></p>`
-                            });
-                        }
-                        if (customer?.email) {
-                            await sendEmail({
-                                to: customer.email,
-                                subject: `Payment Received into Escrow for @${listingInfo?.username}`,
-                                html: `<h2>Your payment of ₹${transaction.amount} is locked safely in Hypp Escrow.</h2>
-                                       <p>The seller has been notified to submit credentials for @${listingInfo?.username} within 48 hours. You will receive an email as soon as credentials are submitted!</p>`
-                            });
-                        }
-                    } catch (emailErr) {
-                        console.error("Escrow notification email error:", emailErr.message);
-                    }
-                }
+                })();
             }
 
             return res.json({ success: true, message: "Payment verified successfully" });
