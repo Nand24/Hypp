@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Loader2Icon, Upload, Sparkles, ShieldCheck, ShieldAlert } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { useAuth } from '@clerk/clerk-react';
+import { useAuth, useUser } from '@clerk/clerk-react';
 import { toast } from 'react-hot-toast';
 import api from '../configs/axios';
 import { useDispatch, useSelector } from 'react-redux';
@@ -11,6 +11,7 @@ const ManageListing = () => {
     const { id } = useParams();
     const navigate = useNavigate();
     const { getToken } = useAuth();
+    const { user } = useUser();
     const dispatch = useDispatch();
     const { userListings } = useSelector((state) => state.listing);
 
