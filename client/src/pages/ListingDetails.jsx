@@ -56,7 +56,7 @@ export default function ListingDetails() {
             }
 
             const options = {
-                key: data.keyId,
+                key: data.keyId || import.meta.env.VITE_RAZORPAY_KEY_ID,
                 amount: data.amount,
                 currency: data.currency || 'INR',
                 name: 'Hypp Escrow Marketplace',
@@ -87,16 +87,26 @@ export default function ListingDetails() {
                             toast.success('Payment Successful!');
                             navigate('/my-orders');
                         } else {
-                            toast.error('Payment verification failed');
+                            toast.error(verifyRes.data?.message || 'Payment verification failed');
                         }
                     } catch (err) {
                         toast.dismissAll();
                         toast.error(err?.response?.data?.message || 'Verification Error');
                     }
                 },
+                modal: {
+                    ondismiss: function () {
+                        toast.dismissAll();
+                        toast('Payment checkout cancelled by user', { icon: 'ℹ️' });
+                    },
+                },
             };
 
             const rzp = new window.Razorpay(options);
+            rzp.on('payment.failed', function (response) {
+                toast.dismissAll();
+                toast.error(response?.error?.description || 'Payment execution failed');
+            });
             rzp.open();
         } catch (error) {
             toast.dismissAll();
