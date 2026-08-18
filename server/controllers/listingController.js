@@ -529,7 +529,13 @@ export const purchaseAccount = async (req, res) => {
         });
     } catch (error) {
         console.error("purchaseAccount error:", error);
-        const errorMessage = error?.error?.description || error?.description || error?.message || error?.code || "Failed to process purchase order";
+        let errorMessage = error?.error?.description || error?.description || error?.message || error?.code || "Failed to process purchase order";
+
+        // Distinguish Razorpay SDK API key failure from user auth failure
+        if (errorMessage === "Authentication failed" || error?.statusCode === 401 || error?.error?.code === "BAD_REQUEST_ERROR") {
+            errorMessage = "Razorpay Gateway Error: Invalid RAZORPAY_KEY_ID or RAZORPAY_KEY_SECRET configured in server environment.";
+        }
+
         return res.status(500).json({ message: errorMessage });
     }
 };

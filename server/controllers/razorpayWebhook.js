@@ -1,9 +1,9 @@
 import crypto from "crypto";
+import mongoose from "mongoose";
 import { inngest } from "../inngest/index.js";
 import Transaction from "../models/Transaction.js";
 import Listing from "../models/Listing.js";
 import User from "../models/User.js";
-
 import Credential from "../models/Credential.js";
 import sendEmail from "../configs/nodemailer.js";
 
@@ -33,14 +33,29 @@ export const razorpayWebhook = async (request, response) => {
             const transactionId = notes.transactionId;
 
             if (transactionId) {
-                const transaction = await Transaction.findOneAndUpdate(
-                    { id: transactionId },
-                    { isPaid: true },
-                    { new: true }
-                ).lean();
+                const isObjectId = mongoose.Types.ObjectId.isValid(transactionId);
+                const currentTx = await Transaction.findOne({
+                    $or: [
+                        { id: transactionId },
+                        ...(isObjectId ? [{ _id: transactionId }] : [])
+                    ]
+                });
 
-                if (transaction) {
-                    let credential = await Credential.findOne({ listingId: transaction.listingId });
+                if (currentTx) {
+                    const transaction = await Transaction.findByIdAndUpdate(
+                        currentTx._id,
+                        { isPaid: true },
+                        { new: true }
+                    ).lean();
+
+                    const isListingObjectId = mongoose.Types.ObjectId.isValid(transaction.listingId);
+                    let credential = await Credential.findOne({
+                        $or: [
+                            { listingId: transaction.listingId },
+                            ...(isListingObjectId ? [{ listingId: transaction.listingId }] : [])
+                        ]
+                    });
+
                     if (!credential) {
                         const tempPass = `Hypp-${Math.random().toString(36).substring(2, 8)}!`;
                         credential = await Credential.create({
@@ -64,14 +79,43 @@ export const razorpayWebhook = async (request, response) => {
                     await inngest.send({ name: "app/purchase", data: { transaction } });
 
                     // Mark listing as sold
-                    await Listing.findOneAndUpdate({ id: transaction.listingId }, { status: "sold", isCredentialSubmitted: true, isCredentialVerified: true, isCredentialChanged: true });
+                    const listingInfo = await Listing.findOne({
+                        $or: [
+                            { id: transaction.listingId },
+                            ...(isListingObjectId ? [{ _id: transaction.listingId }] : [])
+                        ]
+                    });
+
+                    if (listingInfo) {
+                        await Listing.findByIdAndUpdate(listingInfo._id, {
+                            status: "sold",
+                            isCredentialSubmitted: true,
+                            isCredentialVerified: true,
+                            isCredentialChanged: true
+                        });
+                    }
 
                     // Add earned amount to seller balance
-                    await User.findOneAndUpdate({ id: transaction.ownerId }, { $inc: { earned: transaction.amount } });
+                    const isOwnerObjectId = mongoose.Types.ObjectId.isValid(transaction.ownerId);
+                    await User.findOneAndUpdate(
+                        {
+                            $or: [
+                                { id: transaction.ownerId },
+                                ...(isOwnerObjectId ? [{ _id: transaction.ownerId }] : [])
+                            ]
+                        },
+                        { $inc: { earned: transaction.amount } }
+                    );
 
                     try {
-                        const customer = await User.findOne({ id: transaction.userId }).lean();
-                        const listingInfo = await Listing.findOne({ id: transaction.listingId }).lean();
+                        const isUserObjectId = mongoose.Types.ObjectId.isValid(transaction.userId);
+                        const customer = await User.findOne({
+                            $or: [
+                                { id: transaction.userId },
+                                ...(isUserObjectId ? [{ _id: transaction.userId }] : [])
+                            ]
+                        }).lean();
+
                         if (customer?.email) {
                             const creds = credential.updatedCredential?.length > 0 ? credential.updatedCredential : credential.originalCredential;
                             const credHtml = creds?.map((c) => `<p><b>${c.name}:</b> <code>${c.value}</code></p>`).join('') || '';
