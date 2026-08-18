@@ -39,9 +39,13 @@ export default function ListingDetails() {
     const purchaseAccount = async () => {
         try {
             if (!user) return openSignIn();
+            const targetId = listing?.id || listing?._id;
+            if (!targetId) {
+                return toast.error("Listing ID is missing");
+            }
             toast.loading('Initializing order...');
             const token = await getToken();
-            const { data } = await api.get(`/api/listing/purchase-account/${listing.id}`, { headers: { Authorization: `Bearer ${token}` } });
+            const { data } = await api.get(`/api/listing/purchase-account/${targetId}`, { headers: { Authorization: `Bearer ${token}` } });
             toast.dismissAll();
 
             // Load Razorpay Checkout SDK dynamically if needed
@@ -110,15 +114,16 @@ export default function ListingDetails() {
             rzp.open();
         } catch (error) {
             toast.dismissAll();
-            toast.error(error?.response?.data?.message || error.message);
-            console.log(error);
+            const errMsg = error?.response?.data?.message || error?.message || 'Error initializing payment';
+            toast.error(errMsg);
+            console.error('Purchase account error:', error);
         }
     };
 
     useEffect(() => {
-        const listing = listings.find((listing) => listing.id === listingId);
-        if (listing) {
-            setListing(listing);
+        const foundListing = listings.find((item) => item.id === listingId || item._id === listingId);
+        if (foundListing) {
+            setListing(foundListing);
         }
     }, [listingId, listings]);
 

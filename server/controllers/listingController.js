@@ -1,3 +1,4 @@
+import mongoose from "../configs/mongoose.js";
 import crypto from "crypto";
 import imagekit from "../configs/imagekit.js";
 import Razorpay from "razorpay";
@@ -456,7 +457,18 @@ export const purchaseAccount = async (req, res) => {
         const { userId } = await req.auth();
         const { listingId } = req.params;
 
-        const listing = await Listing.findOne({ id: listingId, status: "active" });
+        if (!listingId || listingId === "undefined" || listingId === "null") {
+            return res.status(400).json({ message: "Invalid listing ID provided" });
+        }
+
+        const isObjectId = mongoose.Types.ObjectId.isValid(listingId);
+        const listing = await Listing.findOne({
+            $or: [
+                { id: listingId },
+                ...(isObjectId ? [{ _id: listingId }] : [])
+            ],
+            status: "active"
+        });
 
         if (!listing) {
             return res.status(404).json({ message: "Listing not found or not active" });
@@ -466,7 +478,19 @@ export const purchaseAccount = async (req, res) => {
             return res.status(400).json({ message: "You can't purchase your own listing" });
         }
 
-        const transaction = await Transaction.create({ listingId, ownerId: listing.ownerId, userId, amount: listing.price });
+        const validListingId = listing.id || listing._id.toString();
+        const listingPrice = Number(listing.price) || 0;
+
+        if (listingPrice <= 0) {
+            return res.status(400).json({ message: "Listing price is invalid" });
+        }
+
+        const transaction = await Transaction.create({
+            listingId: validListingId,
+            ownerId: listing.ownerId,
+            userId,
+            amount: listingPrice
+        });
 
         if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET || process.env.RAZORPAY_KEY_ID.includes("---")) {
             return res.status(400).json({ message: "Razorpay keys are missing or invalid. Please set RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET in server/.env" });
@@ -478,15 +502,17 @@ export const purchaseAccount = async (req, res) => {
         });
 
         const currency = req.query.currency || process.env.CURRENCY || "INR";
+        const txId = transaction.id || transaction._id.toString();
+        const amountInPaise = Math.max(100, Math.round(listingPrice * 100));
 
         // Razorpay Order Creation
         const options = {
-            amount: Math.round(transaction.amount * 100),
+            amount: amountInPaise,
             currency: currency,
-            receipt: `rcpt_${transaction.id.slice(0, 15)}`,
+            receipt: `rcpt_${txId.slice(0, 15)}`,
             notes: {
-                transactionId: transaction.id,
-                listingId: listing.id,
+                transactionId: txId,
+                listingId: validListingId,
                 userId,
             },
         };
@@ -498,12 +524,13 @@ export const purchaseAccount = async (req, res) => {
             amount: order.amount,
             currency: order.currency,
             keyId: process.env.RAZORPAY_KEY_ID,
-            transactionId: transaction.id,
-            title: `Purchasing Account @${listing.username} (${listing.platform})`,
+            transactionId: txId,
+            title: `Purchasing Account @${listing.username || 'user'} (${listing.platform || 'social'})`,
         });
     } catch (error) {
-        console.log(error);
-        res.status(500).json({ message: error.code || error.message });
+        console.error("purchaseAccount error:", error);
+        const errorMessage = error?.error?.description || error?.description || error?.message || error?.code || "Failed to process purchase order";
+        return res.status(500).json({ message: errorMessage });
     }
 };
 
@@ -515,24 +542,54 @@ export const verifyRazorpayPayment = async (req, res) => {
             return res.status(400).json({ success: false, message: "Missing required payment verification fields" });
         }
 
+        const secret = process.env.RAZORPAY_KEY_SECRET;
+        if (!secret) {
+            return res.status(500).json({ success: false, message: "Server configuration error: RAZORPAY_KEY_SECRET missing" });
+        }
+
         const body = razorpay_order_id + "|" + razorpay_payment_id;
         const expectedSignature = crypto
-            .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
+            .createHmac("sha256", secret)
             .update(body.toString())
             .digest("hex");
 
         if (expectedSignature === razorpay_signature) {
-            const currentTx = await Transaction.findOne({ id: transactionId });
-            const listingInfo = await Listing.findOne({ id: currentTx?.listingId });
-            let credential = await Credential.findOne({ listingId: listingInfo?.id });
+            const isObjectId = mongoose.Types.ObjectId.isValid(transactionId);
+            const currentTx = await Transaction.findOne({
+                $or: [
+                    { id: transactionId },
+                    ...(isObjectId ? [{ _id: transactionId }] : [])
+                ]
+            });
+
+            if (!currentTx) {
+                return res.status(404).json({ success: false, message: "Transaction record not found" });
+            }
+
+            const isListingObjectId = mongoose.Types.ObjectId.isValid(currentTx.listingId);
+            const listingInfo = await Listing.findOne({
+                $or: [
+                    { id: currentTx.listingId },
+                    ...(isListingObjectId ? [{ _id: currentTx.listingId }] : [])
+                ]
+            });
+
+            let credential = await Credential.findOne({
+                $or: [
+                    { listingId: currentTx.listingId },
+                    ...(isListingObjectId ? [{ listingId: currentTx.listingId }] : [])
+                ]
+            });
 
             const hasPreSubmittedCreds = credential && credential.originalCredential && credential.originalCredential.length > 0;
 
             const expiresAt = new Date(Date.now() + 48 * 60 * 60 * 1000);
             const sellerDeadline = new Date(Date.now() + 48 * 60 * 60 * 1000);
 
+            const txIdToUpdate = currentTx.id || currentTx._id;
+
             const transaction = await Transaction.findOneAndUpdate(
-                { id: transactionId },
+                { $or: [{ id: txIdToUpdate }, { _id: txIdToUpdate }] },
                 {
                     isPaid: true,
                     escrowStatus: hasPreSubmittedCreds ? "held" : "awaiting_credentials",
@@ -542,9 +599,10 @@ export const verifyRazorpayPayment = async (req, res) => {
                 { new: true }
             ).lean();
 
-            if (transaction) {
+            if (transaction && listingInfo) {
+                const listingIdToUpdate = listingInfo.id || listingInfo._id;
                 await Listing.findOneAndUpdate(
-                    { id: transaction.listingId },
+                    { $or: [{ id: listingIdToUpdate }, { _id: listingIdToUpdate }] },
                     {
                         status: "sold",
                         isCredentialSubmitted: hasPreSubmittedCreds,
@@ -613,8 +671,8 @@ export const verifyRazorpayPayment = async (req, res) => {
             return res.status(400).json({ success: false, message: "Invalid payment signature" });
         }
     } catch (error) {
-        console.log(error);
-        res.status(500).json({ message: error.code || error.message });
+        console.error("verifyRazorpayPayment error:", error);
+        return res.status(500).json({ success: false, message: error.message || "Payment verification failed" });
     }
 };
 
