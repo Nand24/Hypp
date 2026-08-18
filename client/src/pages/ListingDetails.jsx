@@ -43,14 +43,24 @@ export default function ListingDetails() {
             if (!targetId) {
                 return toast.error("Listing ID is missing");
             }
-            toast.loading('Initializing order...');
-            const token = await getToken();
+
+            let token = null;
+            try {
+                token = await getToken();
+            } catch (tokenErr) {
+                console.error("Failed to retrieve authentication token:", tokenErr);
+            }
+
             if (!token) {
                 toast.dismissAll();
-                toast.error("Session expired or missing authentication token. Please sign in.");
+                toast.error("Please sign in to complete your account purchase.");
                 return openSignIn();
             }
-            const { data } = await api.get(`/api/listing/purchase-account/${targetId}`, { headers: { Authorization: `Bearer ${token}` } });
+
+            toast.loading('Initializing order...');
+            const { data } = await api.get(`/api/listing/purchase-account/${targetId}`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
             toast.dismissAll();
 
             // Load Razorpay Checkout SDK dynamically if needed
@@ -119,6 +129,10 @@ export default function ListingDetails() {
             rzp.open();
         } catch (error) {
             toast.dismissAll();
+            if (error?.response?.status === 401 || error?.message?.toLowerCase().includes("auth")) {
+                toast.error("Please sign in to purchase this account.");
+                return openSignIn();
+            }
             const errMsg = error?.response?.data?.message || error?.message || 'Error initializing payment';
             toast.error(errMsg);
             console.error('Purchase account error:', error);

@@ -33,7 +33,6 @@ const sendEmail = async ({ to, subject, html }) => {
         return response;
     } catch (err) {
         console.error(`[Nodemailer] Failed to send email to ${to}:`, err.message);
-        return null;
     }
 };
 

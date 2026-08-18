@@ -586,10 +586,8 @@ export const verifyRazorpayPayment = async (req, res) => {
             const expiresAt = new Date(Date.now() + 48 * 60 * 60 * 1000);
             const sellerDeadline = new Date(Date.now() + 48 * 60 * 60 * 1000);
 
-            const txIdToUpdate = currentTx.id || currentTx._id;
-
-            const transaction = await Transaction.findOneAndUpdate(
-                { $or: [{ id: txIdToUpdate }, { _id: txIdToUpdate }] },
+            const transaction = await Transaction.findByIdAndUpdate(
+                currentTx._id,
                 {
                     isPaid: true,
                     escrowStatus: hasPreSubmittedCreds ? "held" : "awaiting_credentials",
@@ -600,9 +598,8 @@ export const verifyRazorpayPayment = async (req, res) => {
             ).lean();
 
             if (transaction && listingInfo) {
-                const listingIdToUpdate = listingInfo.id || listingInfo._id;
-                await Listing.findOneAndUpdate(
-                    { $or: [{ id: listingIdToUpdate }, { _id: listingIdToUpdate }] },
+                await Listing.findByIdAndUpdate(
+                    listingInfo._id,
                     {
                         status: "sold",
                         isCredentialSubmitted: hasPreSubmittedCreds,
