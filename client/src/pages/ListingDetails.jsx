@@ -38,13 +38,18 @@ export default function ListingDetails() {
 
     const purchaseAccount = async () => {
         try {
-            if (!user) return openSignIn();
+            if (!isLoaded || !user) return openSignIn();
             const targetId = listing?.id || listing?._id;
             if (!targetId) {
                 return toast.error("Listing ID is missing");
             }
             toast.loading('Initializing order...');
             const token = await getToken();
+            if (!token) {
+                toast.dismissAll();
+                toast.error("Session expired or missing authentication token. Please sign in.");
+                return openSignIn();
+            }
             const { data } = await api.get(`/api/listing/purchase-account/${targetId}`, { headers: { Authorization: `Bearer ${token}` } });
             toast.dismissAll();
 
