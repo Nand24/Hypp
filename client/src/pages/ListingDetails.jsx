@@ -129,7 +129,7 @@ export default function ListingDetails() {
             rzp.open();
         } catch (error) {
             toast.dismissAll();
-            if (error?.response?.status === 401 || error?.message?.toLowerCase().includes("auth")) {
+            if (error?.response?.status === 401) {
                 toast.error("Please sign in to purchase this account.");
                 return openSignIn();
             }
